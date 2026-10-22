@@ -1,0 +1,13 @@
+@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+.itinerary-progress {
+  width: 76%;
+}
+
+.itinerary-tokyo-cover {
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAWodkq9jlgim9vOK0OU7YW7LeydwV2AbNkIqmlLTqSIXpqTS_QC65LjHNjrcm5qk2NZcw6jcDUiaK5ZRpn1NOsm62VJl0AmzHYYbV_3ygusSDyweMJomOv1eHu_r0pTK-bAX5fzmwGMlrtkU5CojM0oNW12uZjK_up5NXCSHhWFknhV5q8dGB1-FLXXWz1CJGzdrw_Wom0RAD0QJG8bkVSkKANP5FBKTbd_q4ZWiQuhcL_Tl99kS0m');
+}
+
+.footer-copyright {
+  letter-spacing: 0.18px;
+}
+

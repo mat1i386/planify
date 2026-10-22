@@ -1,0 +1,559 @@
+<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_standard" name="shell-type"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:wght@100..900&amp;display=swap" rel="stylesheet"><link rel="stylesheet" href="Explorar/styles.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="Explorar/logica.js"></script>
+</head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-primary-container shadow-[0_1px_8px_rgba(0,0,0,0.06)]"><div class="h-16 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Planify Logo" class="h-8 w-auto object-contain" src="imagenes/planify-logo.png"><span class="font-title-lg text-title-lg text-on-primary font-bold tracking-tight">Planify</span></div>
+  <nav class="hidden md:flex items-center gap-space-lg" data-active-classes="text-secondary-fixed font-bold border-b-2 border-secondary"><a aria-current="page" class="transition-colors py-space-xs text-secondary-fixed font-bold border-b-2 border-secondary" data-path="explorar" href="index.html">Explorar</a>
+    <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" data-path="favoritos" href="favoritos/index.html">Favoritos</a>
+    <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" data-path="mi-itinerario" href="itinerario/index.html">Mi Itinerario</a>
+    <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" data-path="acerca-de" href="Acerca%20de/index.html">Acerca de</a></nav><div class="flex items-center gap-space-md"><a class="hidden sm:inline-flex items-center justify-center px-space-md py-space-xs rounded-lg border border-secondary text-secondary-fixed font-label-lg text-label-lg hover:bg-secondary/10 transition-colors" data-path="login" href="#">Ingresar</a></div></div></header><main class="w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full">
+
+<section class="relative w-full overflow-hidden bg-surface py-space-xl px-margin">
+
+<div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-secondary-container/30 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-24 -left-20 w-80 h-80 rounded-full bg-primary-fixed/20 blur-2xl pointer-events-none"></div>
+<div class="max-w-6xl mx-auto flex flex-col items-center text-center relative z-10">
+
+<div class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-full bg-surface-container-high text-secondary font-label-md text-label-md shadow-sm mb-space-md">
+<span class="material-symbols-outlined text-[16px]">travel_explore</span>
+<span class="">Plataforma Integral de Viajes Inteligentes</span>
+</div>
+
+<h1 class="font-display-lg text-display-lg text-primary max-w-4xl tracking-tight leading-tight mb-space-sm">
+        Planifica tu viaje inteligente con Planify
+      </h1>
+<p class="font-headline-sm text-headline-sm text-on-surface-variant max-w-2xl font-normal mb-space-xl">
+        Centraliza clima, países y actividades en un solo lugar con sincronización en tiempo real.
+      </p>
+
+<div class="w-full max-w-3xl bg-surface-container-lowest rounded-xl shadow-md p-space-sm">
+<form class="flex flex-col sm:flex-row items-center gap-space-sm" id="search-form">
+<div class="relative flex-1 w-full flex items-center">
+<span class="material-symbols-outlined text-outline absolute left-space-md pointer-events-none">location_on</span>
+<input class="w-full pl-12 pr-space-md py-space-md bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="search-input" placeholder="Buscar país o ciudad destino... (ej. Kioto, Japón; Roma, Italia; Medellín, Colombia)" type="text" value="Tokio, Japón">
+</div>
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-xl py-space-md rounded-lg bg-on-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg shadow-sm transition-all transform active:scale-95" type="submit">
+<span class="material-symbols-outlined text-[20px]">search</span>
+<span class="">Buscar</span>
+</button>
+</form>
+
+<div class="flex flex-wrap items-center gap-space-xs mt-space-sm pt-space-xs px-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider mr-space-xs">Destinos Populares:</span>
+<button class="px-space-sm py-1 rounded-full bg-secondary text-on-secondary font-label-md text-label-md shadow-xs flex items-center gap-1 transition-colors" data-quick-filter="Japón - Tokio" type="button">
+<span class="">Japón</span>
+<span class="material-symbols-outlined text-[14px]">check</span>
+</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-label-md text-label-md transition-colors" data-quick-filter="Italia - Roma" type="button">Italia</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-label-md text-label-md transition-colors" data-quick-filter="España - Madrid" type="button">España</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-label-md text-label-md transition-colors" data-quick-filter="Colombia - Medellín" type="button">Colombia</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface-variant font-label-md text-label-md transition-colors" data-quick-filter="Islandia - Reikiavik" type="button">Islandia</button>
+</div>
+</div>
+</div>
+</section>
+
+<section class="w-full px-margin py-space-xl max-w-6xl mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-space-lg">
+<div>
+<span class="font-label-md text-label-md uppercase tracking-wider text-secondary font-bold">Herramientas de Planificación</span>
+<h2 class="font-headline-lg text-headline-lg text-primary mt-1">¿Qué puedes hacer en Planify?</h2>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md mt-2 md:mt-0">
+        Optimiza cada etapa de tu viaje eliminando la dispersión entre aplicaciones meteorológicas, guías y presupuestos.
+      </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+
+<div class="group relative bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+<div class="w-12 h-12 rounded-lg bg-secondary-fixed flex items-center justify-center text-secondary mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">public</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-primary font-bold mb-space-xs">Explorar Destinos</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+            Conexión directa con bases de datos globales de países y territorios: información oficial de capitales, regiones geopolíticas, demografía, divisas locales e idiomas primarios.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<span class="">Consultar fichas técnicas</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+
+<div class="group relative bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high flex items-center justify-center text-on-tertiary-container mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">wb_sunny</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-primary font-bold mb-space-xs">Consultar Clima</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+            Pronóstico meteorológico hiperlocal en tiempo real, sensación térmica calibrada, índices de radiación UV, velocidad y dirección de ráfagas e informes de calidad de aire (AQI).
+          </p>
+</div>
+<div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<span class="">Ver mapa radar</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+
+<div class="group relative bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+<div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center text-secondary mb-space-md group-hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-[28px]">event_note</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg text-primary font-bold mb-space-xs">Crear Itinerario</h3>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-space-md">
+            Agenda inteligente día por día con cálculo dinámico de presupuesto acumulativo, categorización semántica de actividades turísticas y exportación sincronizada.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<span class="">Diseñar cronograma</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+
+<section class="w-full px-margin py-space-xl max-w-6xl mx-auto">
+
+<div class="bg-primary text-on-primary p-space-lg rounded-xl shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-secondary-fixed">
+<span class="material-symbols-outlined text-[32px]">flag_circle</span>
+</div>
+<div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<h2 class="font-headline-md text-headline-md text-on-primary font-bold" id="current-destination-title">Japón - Tokio</h2>
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm uppercase tracking-wide">
+              Destino Activo
+            </span>
+<span class="inline-flex items-center gap-1 font-body-sm text-body-sm text-secondary-fixed-dim">
+<span class="material-symbols-outlined text-[14px]">schedule</span> UTC +09:00 (JST)
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-inverse-on-surface/80 mt-0.5">Metrópolis ultra-moderna que conserva templos milenarios y cultura gastronómica icónica.</p>
+</div>
+</div>
+
+<div class="flex items-center gap-space-sm self-end md:self-auto">
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-xs rounded-lg bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary font-label-md text-label-md transition-colors" id="favorite-btn">
+<span class="material-symbols-outlined text-[20px] text-tertiary-fixed" id="fav-icon">favorite</span>
+<span id="fav-text" class="">En Favoritos</span>
+</button>
+<button class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-surface-container-lowest/10 hover:bg-surface-container-lowest/20 text-on-primary transition-colors" title="Compartir destino">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+
+<div class="lg:col-span-4 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
+
+<div class="relative w-full h-44 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Tokyo city skyline with Mount Fuji visible on the horizon during sunrise, vivid warm light and modern skyscrapers, highly detailed realistic travel photography" src="imagenes/Japon.jpg">
+
+<div class="absolute bottom-3 left-3 bg-surface-container-lowest/95 backdrop-blur-sm p-1.5 rounded-lg shadow-md flex items-center gap-2">
+
+<svg class="w-8 h-5 rounded shadow-xs" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#ffffff" height="600" width="900"></rect>
+<circle cx="450" cy="300" fill="#bc002d" r="180"></circle>
+</svg>
+<span class="font-label-md text-label-md text-primary font-bold pr-1">Japón (日本)</span>
+</div>
+<span class="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/80 backdrop-blur-sm text-on-primary font-label-sm text-label-sm">
+            Código: JPN / JP
+          </span>
+</div>
+<div>
+<h4 class="font-title-md text-title-md text-primary font-bold flex items-center gap-1.5 mb-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">badge</span>
+            Ficha Geopolítica
+          </h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Datos estandarizados verificados por servicios consulares internacionales.
+          </p>
+</div>
+
+<div class="grid grid-cols-2 gap-space-xs bg-surface-container-low p-space-sm rounded-lg">
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Capital</span>
+<span class="font-title-md text-title-md text-primary font-bold">Tokio</span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Región</span>
+<span class="font-title-md text-title-md text-primary font-bold">Asia Oriental</span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Población</span>
+<span class="font-title-md text-title-md text-primary font-bold">125.7 M</span>
+</div>
+<!DOCTYPE html><html lang="es"><head>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Idioma Oficial</span>
+<span class="font-title-md text-title-md text-primary font-bold">Japonés</span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Moneda</span>
+<span class="font-title-md text-title-md text-secondary font-bold">Yen (JPY ¥)</span>
+</div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Zona Horaria</span>
+<span class="font-title-md text-title-md text-primary font-bold">UTC +09:00</span>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-high flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]">currency_exchange</span>
+<span class="font-label-md text-label-md text-on-surface">1 USD ≈ 154.20 JPY</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Tasa Oficial</span>
+</div>
+</div>
+
+<div class="lg:col-span-8 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div>
+
+<div class="flex items-center justify-between mb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[22px]">cloud</span>
+<h4 class="font-title-md text-title-md text-primary font-bold">Clima en Tiempo Real</h4>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed/50 px-2 py-0.5 rounded-full font-bold">En Vivo</span>
+</div>
+
+<div class="bg-gradient-to-br from-surface-container-low to-surface-container-lowest p-space-md rounded-xl mb-space-md flex items-center justify-between">
+<div>
+<div class="flex items-baseline gap-1">
+<span class="font-display-lg text-display-lg text-primary font-bold">22°</span>
+<span class="font-title-lg text-title-lg text-on-surface-variant font-medium">C</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant font-medium mt-0.5">Sensación térmica: 21°C</p>
+<div class="inline-flex items-center gap-1 mt-space-xs text-on-tertiary-container font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">partly_cloudy_day</span>
+<span class="">Soleado con nubes dispersas</span>
+</div>
+</div>
+
+<div class="w-20 h-20 rounded-full bg-secondary-fixed/30 flex items-center justify-center text-on-tertiary-container">
+<span class="material-symbols-outlined text-[52px]">sunny</span>
+</div>
+</div>
+
+<div class="grid grid-cols-3 gap-space-xs mb-space-md text-center">
+<div class="p-space-xs bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[18px]">humidity_percentage</span>
+<span class="font-label-sm text-label-sm text-outline block mt-0.5">Humedad</span>
+<span class="font-title-md text-title-md text-primary font-bold">58%</span>
+</div>
+<div class="p-space-xs bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[18px]">air</span>
+<span class="font-label-sm text-label-sm text-outline block mt-0.5">Viento</span>
+<span class="font-title-md text-title-md text-primary font-bold">14 km/h</span>
+</div>
+<div class="p-space-xs bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[18px]">nest_eco_leaf</span>
+<span class="font-label-sm text-label-sm text-outline block mt-0.5">Aire (AQI)</span>
+<span class="font-title-md text-title-md text-secondary font-bold">28 Buena</span>
+</div>
+</div>
+
+<div>
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider block mb-space-xs font-semibold">Pronóstico Extendido</span>
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md text-primary font-bold w-16">Mañana</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">sunny</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Soleado</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface">
+<span class="font-bold text-primary">24°C</span> / <span class="text-outline">16°C</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md text-primary font-bold w-16">Día 2</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">rainy</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lluvia ligera</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface">
+<span class="font-bold text-primary">21°C</span> / <span class="text-outline">14°C</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md text-primary font-bold w-16">Día 3</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">clear_day</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Despejado</span>
+</div>
+<div class="font-label-md text-label-md text-on-surface">
+<span class="font-bold text-primary">23°C</span> / <span class="text-outline">15°C</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-space-sm mt-space-sm bg-surface-container-low p-space-xs rounded-lg text-center font-body-sm text-body-sm text-outline">
+          Actualizado hace 8 min vía Red Meteorológica JMA
+        </div>
+</div>
+
+</div>
+</section>
+
+<section class="w-full px-margin py-space-xl max-w-6xl mx-auto">
+<div class="mb-space-lg">
+<span class="font-label-md text-label-md uppercase tracking-wider text-secondary font-bold">Gestión de Viajes</span>
+<h2 class="font-headline-lg text-headline-lg text-primary mt-1">Planificador de Itinerarios</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Configura tu estancia y supervisa los gastos para tu viaje</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+
+<div class="lg:col-span-5 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[24px]">edit_calendar</span>
+<h3 class="font-title-lg text-title-lg text-primary font-bold">Nuevo Itinerario</h3>
+</div>
+<span class="font-label-sm text-label-sm text-secondary bg-secondary-fixed/40 px-2 py-0.5 rounded-full font-bold">Borrador</span>
+</div>
+<form class="space-y-space-md" id="itinerary-form">
+
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Nombre del Viaje</label>
+<div class="relative">
+<span class="material-symbols-outlined text-outline absolute left-3 top-3 text-[18px]">flight_takeoff</span>
+<input class="w-full pl-10 pr-space-md py-2.5 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="trip-name" required="" type="text" value="Aventura Primaveral en Tokio">
+</div>
+</div>
+
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Destino (País / Ciudad)</label>
+<div class="relative">
+<span class="material-symbols-outlined text-outline absolute left-3 top-3 text-[18px]">pin_drop</span>
+<input class="w-full pl-10 pr-space-md py-2.5 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="trip-destination" required="" type="text" value="Japón / Tokio">
+</div>
+</div>
+
+<div class="grid grid-cols-2 gap-space-sm">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Fecha de Inicio</label>
+<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" type="date" value="2026-04-10">
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Fecha de Fin</label>
+<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" type="date" value="2026-04-16">
+</div>
+</div>
+
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Presupuesto Estimado ($)</label>
+<div class="relative">
+<span class="material-symbols-outlined text-outline absolute left-3 top-3 text-[18px]">payments</span>
+<input class="w-full pl-10 pr-space-md py-2.5 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="trip-budget" type="text" value="$2,800 USD">
+</div>
+<span class="font-body-sm text-body-sm text-outline mt-1 block">Aproximadamente $400 USD por día planeado.</span>
+</div>
+
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Notas y Preferencias</label>
+<textarea class="w-full p-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" placeholder="Preferencias de transporte, reservas de tren Shinkansen o alergias gastronómicas..." rows="2">Incluir pase JR Tokyo Pass de 3 días y reservas de cena en Shinjuku.</textarea>
+</div>
+
+<button class="w-full inline-flex items-center justify-center gap-space-xs py-space-md rounded-lg bg-on-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg shadow-md transition-all transform active:scale-98" type="submit">
+<span class="material-symbols-outlined text-[20px]">save</span>
+<span class="">Guardar Plan en Mi Itinerario</span>
+</button>
+</form>
+
+<div class="hidden mt-space-md p-space-sm rounded-lg bg-secondary-fixed text-on-secondary-fixed font-body-sm text-body-sm items-center gap-2" id="save-alert">
+<span class="material-symbols-outlined text-secondary text-[20px]">check_circle</span>
+<span class="">¡Plan guardado exitosamente en tu almacenamiento personal!</span>
+</div>
+</div>
+
+<div class="lg:col-span-7 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-md mb-space-md bg-surface-container-low p-space-md rounded-xl">
+<div>
+<div class="flex items-center gap-2">
+<h4 class="font-title-lg text-title-lg text-primary font-bold">Aventura Primaveral en Tokio</h4>
+<span class="px-2 py-0.5 rounded-full bg-secondary text-on-secondary font-label-sm text-label-sm">Confirmado</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">7 Días / 6 Noches | 10 Abr - 16 Abr 2026</p>
+</div>
+<div class="mt-space-sm sm:mt-0 text-left sm:text-right">
+<span class="font-label-sm text-label-sm text-outline block">Presupuesto Ejecutado</span>
+<span class="font-title-lg text-title-lg text-primary font-bold">$2,150 <span class="text-on-surface-variant font-normal text-body-sm">/ $2,800 USD</span></span>
+</div>
+</div>
+
+<div class="mb-space-lg">
+<div class="flex justify-between items-center mb-1">
+<span class="font-label-sm text-label-sm text-outline">Balance de Consumo: 76%</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">$650 USD Disponibles</span>
+</div>
+<div class="w-full bg-surface-container-high h-2.5 rounded-full overflow-hidden">
+<div class="budget-progress bg-secondary h-full rounded-full"></div>
+</div>
+</div>
+
+<div class="flex items-center justify-between mb-space-sm">
+<h4 class="font-title-md text-title-md text-primary font-bold">Cronograma Día por Día</h4>
+<span class="font-label-sm text-label-sm text-outline">7 actividades clave registradas</span>
+</div>
+<div class="space-y-space-sm">
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">01</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Llegada a Tokio (Narita) y Check-in</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$120 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Traslado en tren Narita Express y acomodación en hotel en Shinjuku.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Logística</span>
+<span class="text-outline font-body-sm text-body-sm">• 15:30 JST</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">02</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Templo Senso-ji, Mercado Tsukiji y Asakusa</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$95 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Caminata tradicional matutina, degustación de mariscos frescos y souvenirs.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm">Cultura</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-tertiary-container font-label-sm text-label-sm">Gastronomía</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">03</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Cruce de Shibuya, Meiji Jingu y Harajuku</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$180 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">El paso peatonal más concurrido, santuario sintoísta y compras de moda urbana.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm">Urbano</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Compras</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">04</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Excursión al Monte Fuji y Lago Kawaguchiko</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$210 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Vistas icónicas del volcán, paseo en teleférico y almuerzo junto a la ribera lacustre.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm">Naturaleza</span>
+<span class="text-outline font-body-sm text-body-sm">• Excursión Día Completo</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">05</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Akihabara y Museo TeamLab Planets</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$140 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Inmersión digital multisensorial en Toyosu y tiendas tecnológicas de Akihabara.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Arte Digital</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm">Tecnología</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">06</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Jardines del Palacio Imperial y Cena en Ginza</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$260 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Recorrido por los fosos históricos de Chiyoda seguido de experiencia Kaiseki.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm">Historia</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-tertiary-container font-label-sm text-label-sm">Alta Gastronomía</span>
+</div>
+</div>
+</div>
+
+<div class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container transition-all flex items-start gap-space-sm">
+<div class="w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0">
+<span class="font-label-sm text-label-sm leading-none">DÍA</span>
+<span class="font-title-lg text-title-lg font-bold leading-none">07</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex flex-wrap items-center justify-between gap-1">
+<h5 class="font-title-md text-title-md text-primary font-bold truncate">Souvenirs en Roppongi y Vuelo de Regreso</h5>
+<span class="font-label-md text-label-md text-secondary font-bold">$80 USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Últimas vistas desde Roppongi Hills y traslado al aeropuerto Haneda.</p>
+<div class="flex items-center gap-space-xs mt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Retorno</span>
+<span class="text-outline font-body-sm text-body-sm">• Vuelo 19:40 JST</span>
+</div>
+</div>
+</div>
+</div>
+
+<div class="mt-space-md pt-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span class="">Añadir Actividad al Cronograma</span>
+</button>
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-space-xs px-space-md py-2 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md hover:bg-secondary/90 transition-colors">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span class="">Exportar Itinerario (PDF)</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+
+
+</div></main><footer class="w-full bg-surface-container py-space-lg shadow-[0_-1px_4px_rgba(0,0,0,0.02)]"><div class="w-full px-margin text-center font-body-sm text-body-sm text-on-surface-variant"><span class="footer-copyright">© 2026 Planify</span></div></footer>
+
+
+
+
+
+</body></html>

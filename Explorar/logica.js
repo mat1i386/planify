@@ -240,7 +240,8 @@ async function pedirPaises(ruta, texto) {
   });
 
   if (!response.ok) {
-    throw new Error(`No se pudo consultar la API (${response.status})`);
+    const cuerpo = await response.json().catch(() => null);
+    throw new Error(`(${response.status}) ${cuerpo?.errors?.[0]?.message || "Sin detalle"}`);
   }
 
   const data = await response.json();

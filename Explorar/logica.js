@@ -125,20 +125,6 @@ function quickFilter(destination) {
       }
     }
 
-    let isFavorite = true;
-    function toggleFavorite() {
-      isFavorite = !isFavorite;
-      const favText = document.getElementById('fav-text');
-      const favIcon = document.getElementById('fav-icon');
-      if (isFavorite) {
-        favText.innerText = 'En Favoritos';
-        favIcon.style.fontVariationSettings = "'FILL' 1";
-      } else {
-        favText.innerText = 'AÃ±adir a Favoritos';
-        favIcon.style.fontVariationSettings = "'FILL' 0";
-      }
-    }
-
     function saveItineraryAlert() {
       const alert = document.getElementById('save-alert');
       if (alert) {
@@ -163,9 +149,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("favorite-btn")?.addEventListener("click", toggleFavorite);
 
-  document.getElementById("itinerary-form")?.addEventListener("submit", (event) => {
+  const formItinerario = document.getElementById("itinerary-form");
+  formItinerario?.addEventListener("input", (event) => event.target.setCustomValidity?.(""));
+  formItinerario?.addEventListener("submit", (event) => {
     event.preventDefault();
-    saveItineraryAlert();
+    if (guardarItinerario()) saveItineraryAlert();
   });
 });
 
@@ -262,7 +250,8 @@ function elegirPais(lista, texto) {
 async function buscarDestino(destination) {
   const countryName = obtenerPaisDesdeDestino(destination);
   if (!countryName) return;
-
+    actualizarBotonFavorito();
+  cargarClima(destination);
   try {
     let lista = await pedirPaises("names.translations", countryName); // nombre en español
     if (!lista.length) lista = await pedirPaises("name", countryName); // nombre en inglés o nativo
@@ -283,3 +272,285 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-input");
   if (searchInput?.value) buscarDestino(searchInput.value);
 });
+
+/* ===================== localStorage ===================== */
+const CLAVE_FAVORITOS = "planify:favoritos";
+const CLAVE_ITINERARIOS = "planify:itinerarios";
+const CLAVE_COORDENADAS = "planify:coordenadas";
+
+function leerStorage(clave, porDefecto) {
+  try {
+    const valor = localStorage.getItem(clave);
+    return valor ? JSON.parse(valor) : porDefecto;
+  } catch (error) {
+    console.error(`No se pudo leer "${clave}" de localStorage:`, error);
+    return porDefecto;
+  }
+}
+
+function guardarStorage(clave, valor) {
+  try {
+    localStorage.setItem(clave, JSON.stringify(valor));
+    return true;
+  } catch (error) {
+    console.error(`No se pudo guardar "${clave}" en localStorage:`, error);
+    return false;
+  }
+}
+
+/* ===================== Destino (título azul) ===================== */
+function separarDestino(destination) {
+  const valor = destination.trim();
+  if (valor.includes(",")) {
+    const partes = valor.split(",").map((parte) => parte.trim());
+    return { ciudad: partes[0], pais: partes[partes.length - 1] };
+  }
+  if (valor.includes(" - ")) {
+    const [pais, ciudad] = valor.split(" - ").map((parte) => parte.trim());
+    return { pais, ciudad };
+  }
+  return { pais: valor, ciudad: "" };
+}
+
+function destinoActual() {
+  return document.getElementById("current-destination-title")?.textContent.trim() || "";
+}
+
+/* ===================== Favoritos ===================== */
+function idDestino(destination) {
+  const { pais, ciudad } = separarDestino(destination);
+  return `${normalizar(pais)}|${normalizar(ciudad)}`;
+}
+
+function obtenerFavoritos() {
+  return leerStorage(CLAVE_FAVORITOS, []);
+}
+
+function actualizarBotonFavorito() {
+  const favText = document.getElementById("fav-text");
+  const favIcon = document.getElementById("fav-icon");
+  if (!favText || !favIcon) return;
+
+  const id = idDestino(destinoActual());
+  const esFavorito = obtenerFavoritos().some((favorito) => favorito.id === id);
+
+  favText.textContent = esFavorito ? "En Favoritos" : "Añadir a Favoritos";
+  favIcon.style.fontVariationSettings = esFavorito ? "'FILL' 1" : "'FILL' 0";
+}
+
+function toggleFavorite() {
+  const destino = destinoActual();
+  if (!destino) return;
+
+  const id = idDestino(destino);
+  const favoritos = obtenerFavoritos();
+  const yaExiste = favoritos.some((favorito) => favorito.id === id);
+
+  const actualizados = yaExiste
+    ? favoritos.filter((favorito) => favorito.id !== id) // eliminar
+    : [...favoritos, { id, destino, ...separarDestino(destino), guardadoEn: new Date().toISOString() }]; // agregar sin duplicar
+
+  guardarStorage(CLAVE_FAVORITOS, actualizados);
+  actualizarBotonFavorito();
+}
+
+/* ===================== Itinerario (formulario) ===================== */
+function guardarItinerario() {
+  const nombre = document.getElementById("trip-name");
+  const destino = document.getElementById("trip-destination");
+  const inicio = document.getElementById("trip-start");
+  const fin = document.getElementById("trip-end");
+  const presupuesto = document.getElementById("trip-budget");
+  const notas = document.getElementById("trip-notes");
+  const campos = [nombre, destino, inicio, fin];
+
+  campos.forEach((campo) => campo.setCustomValidity(""));
+
+  if (nombre.value.trim().length < 3) {
+    nombre.setCustomValidity("El nombre del viaje debe tener al menos 3 caracteres.");
+  }
+  if (!destino.value.trim()) {
+    destino.setCustomValidity("Indica el destino del viaje.");
+  }
+  if (!inicio.value) {
+    inicio.setCustomValidity("Selecciona la fecha de inicio.");
+  }
+  if (!fin.value) {
+    fin.setCustomValidity("Selecciona la fecha de fin.");
+  } else if (inicio.value && fin.value < inicio.value) {
+    fin.setCustomValidity("La fecha de fin no puede ser anterior a la de inicio.");
+  }
+
+  const invalido = campos.find((campo) => !campo.validity.valid);
+  if (invalido) {
+    invalido.reportValidity();
+    return false;
+  }
+
+  const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
+  itinerarios.push({
+    id: Date.now(),
+    nombre: nombre.value.trim(),
+    destino: destino.value.trim(),
+    inicio: inicio.value,
+    fin: fin.value,
+    presupuesto: presupuesto?.value.trim() || "",
+    notas: notas?.value.trim() || "",
+    creadoEn: new Date().toISOString()
+  });
+  return guardarStorage(CLAVE_ITINERARIOS, itinerarios);
+}
+
+/* ===================== Clima: Nominatim + Open-Meteo ===================== */
+const CLIMA_CODIGOS = [
+  [[0], "Despejado", "clear_day"],
+  [[1], "Mayormente despejado", "sunny"],
+  [[2], "Parcialmente nublado", "partly_cloudy_day"],
+  [[3], "Nublado", "cloud"],
+  [[45, 48], "Niebla", "foggy"],
+  [[51, 53, 55, 56, 57], "Llovizna", "rainy"],
+  [[61], "Lluvia ligera", "rainy"],
+  [[63], "Lluvia moderada", "rainy"],
+  [[65], "Lluvia fuerte", "rainy"],
+  [[66, 67], "Lluvia helada", "rainy"],
+  [[71, 73, 75, 77, 85, 86], "Nevada", "weather_snowy"],
+  [[80, 81, 82], "Chubascos", "rainy"],
+  [[95, 96, 99], "Tormenta", "thunderstorm"]
+];
+
+function describirClima(codigo) {
+  const fila = CLIMA_CODIGOS.find(([codigos]) => codigos.includes(codigo));
+  return fila ? { texto: fila[1], icono: fila[2] } : { texto: "Sin datos", icono: "cloud" };
+}
+
+function clasificarAqi(aqi) {
+  if (aqi <= 50) return { texto: "Buena", clase: "text-secondary" };
+  if (aqi <= 100) return { texto: "Moderada", clase: "text-on-tertiary-container" };
+  if (aqi <= 150) return { texto: "Dañina (sensibles)", clase: "text-error" };
+  if (aqi <= 200) return { texto: "Dañina", clase: "text-error" };
+  return { texto: "Muy dañina", clase: "text-error" };
+}
+
+function etiquetaDia(fecha, posicion) {
+  if (posicion === 1) return "Mañana";
+  const texto = new Date(`${fecha}T12:00:00`).toLocaleDateString("es", { weekday: "short", day: "numeric" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+function ponerTexto(id, texto) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = texto;
+}
+
+async function obtenerCoordenadas(destination) {
+  const { pais, ciudad } = separarDestino(destination);
+  const consulta = [ciudad, pais].filter(Boolean).join(", ");
+  const clave = normalizar(consulta);
+
+  const cache = leerStorage(CLAVE_COORDENADAS, {});
+  if (cache[clave]) return cache[clave]; // evita repetir llamadas a Nominatim
+
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(consulta)}&format=jsonv2&limit=1&accept-language=es`;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Nominatim respondió ${response.status}`);
+
+  const resultados = await response.json();
+  if (!resultados.length) throw new Error(`No se encontraron coordenadas para "${consulta}"`);
+
+  const coordenadas = { lat: Number(resultados[0].lat), lon: Number(resultados[0].lon) };
+  cache[clave] = coordenadas;
+  guardarStorage(CLAVE_COORDENADAS, cache);
+  return coordenadas;
+}
+
+async function pedirClima(lat, lon) {
+  const params = new URLSearchParams({
+    latitude: lat,
+    longitude: lon,
+    current: "temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max",
+    timezone: "auto",
+    forecast_days: 4
+  });
+  const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!response.ok) throw new Error(`Open-Meteo respondió ${response.status}`);
+  return response.json();
+}
+
+async function pedirCalidadAire(lat, lon) {
+  const params = new URLSearchParams({ latitude: lat, longitude: lon, current: "us_aqi", timezone: "auto" });
+  const response = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${params}`);
+  if (!response.ok) throw new Error(`Open-Meteo Air Quality respondió ${response.status}`);
+  return response.json();
+}
+
+function pintarClima(clima, aire) {
+  const actual = clima.current;
+  const descripcion = describirClima(actual.weather_code);
+
+  ponerTexto("weather-temp", `${Math.round(actual.temperature_2m)}°`);
+  ponerTexto("weather-feels", `Sensación térmica: ${Math.round(actual.apparent_temperature)}°C`);
+  ponerTexto("weather-condition-text", descripcion.texto);
+  ponerTexto("weather-condition-icon", descripcion.icono);
+  ponerTexto("weather-main-icon", descripcion.icono);
+  ponerTexto("weather-humidity", `${Math.round(actual.relative_humidity_2m)}%`);
+  ponerTexto("weather-wind", `${Math.round(actual.wind_speed_10m)} km/h`);
+
+  const aqi = aire?.current?.us_aqi;
+  const aqiElement = document.getElementById("weather-aqi");
+  if (aqiElement) {
+    aqiElement.classList.remove("text-secondary", "text-on-tertiary-container", "text-error");
+    if (typeof aqi === "number") {
+      const nivel = clasificarAqi(aqi);
+      aqiElement.textContent = `${Math.round(aqi)} ${nivel.texto}`;
+      aqiElement.classList.add(nivel.clase);
+    } else {
+      aqiElement.textContent = "No disponible";
+      aqiElement.classList.add("text-secondary");
+    }
+  }
+
+  const diario = clima.daily;
+  for (let i = 1; i <= 3; i++) {
+    const dia = describirClima(diario.weather_code[i]);
+    const lluvia = diario.precipitation_probability_max?.[i];
+    ponerTexto(`forecast-day-${i}`, etiquetaDia(diario.time[i], i));
+    ponerTexto(`forecast-icon-${i}`, dia.icono);
+    ponerTexto(`forecast-desc-${i}`, typeof lluvia === "number" ? `${dia.texto} · ${lluvia}% lluvia` : dia.texto);
+    ponerTexto(`forecast-max-${i}`, `${Math.round(diario.temperature_2m_max[i])}°C`);
+    ponerTexto(`forecast-min-${i}`, `${Math.round(diario.temperature_2m_min[i])}°C`);
+  }
+
+  ponerTexto("weather-updated", `Actualizado a las ${actual.time.slice(11, 16)} (hora local del destino) vía Open-Meteo`);
+}
+
+function mostrarErrorClima(mensaje) {
+  ponerTexto("weather-temp", "--°");
+  ponerTexto("weather-feels", "Sensación térmica: --");
+  ponerTexto("weather-condition-text", "Sin datos");
+  ponerTexto("weather-humidity", "--");
+  ponerTexto("weather-wind", "--");
+  ponerTexto("weather-aqi", "--");
+  ponerTexto("weather-updated", mensaje);
+}
+
+let ultimaSolicitudClima = 0;
+
+async function cargarClima(destination) {
+  const solicitud = ++ultimaSolicitudClima;
+  ponerTexto("weather-updated", "Cargando clima…");
+
+  try {
+    const { lat, lon } = await obtenerCoordenadas(destination);
+    const [resClima, resAire] = await Promise.allSettled([pedirClima(lat, lon), pedirCalidadAire(lat, lon)]);
+
+    if (solicitud !== ultimaSolicitudClima) return; // llegó tarde: el usuario ya eligió otro destino
+    if (resClima.status === "rejected") throw resClima.reason;
+
+    pintarClima(resClima.value, resAire.status === "fulfilled" ? resAire.value : null);
+  } catch (error) {
+    if (solicitud !== ultimaSolicitudClima) return;
+    console.error("Error al cargar el clima:", error);
+    mostrarErrorClima("No se pudo cargar el clima de este destino.");
+  }
+}

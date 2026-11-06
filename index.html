@@ -228,18 +228,18 @@
 <div class="bg-gradient-to-br from-surface-container-low to-surface-container-lowest p-space-md rounded-xl mb-space-md flex items-center justify-between">
 <div>
 <div class="flex items-baseline gap-1">
-<span class="font-display-lg text-display-lg text-primary font-bold">22°</span>
+<span class="font-display-lg text-display-lg text-primary font-bold" id="weather-temp">22°</span>
 <span class="font-title-lg text-title-lg text-on-surface-variant font-medium">C</span>
 </div>
-<p class="font-body-md text-body-md text-on-surface-variant font-medium mt-0.5">Sensación térmica: 21°C</p>
+<p class="font-body-md text-body-md text-on-surface-variant font-medium mt-0.5" id="weather-feels">Sensación térmica: 21°C</p>
 <div class="inline-flex items-center gap-1 mt-space-xs text-on-tertiary-container font-label-md text-label-md">
-<span class="material-symbols-outlined text-[18px]">partly_cloudy_day</span>
-<span class="">Soleado con nubes dispersas</span>
+<span class="material-symbols-outlined text-[18px]" id="weather-condition-icon">partly_cloudy_day</span>
+<span class="" id="weather-condition-text">Soleado con nubes dispersas</span>
 </div>
 </div>
 
 <div class="w-20 h-20 rounded-full bg-secondary-fixed/30 flex items-center justify-center text-on-tertiary-container">
-<span class="material-symbols-outlined text-[52px]">sunny</span>
+<span class="material-symbols-outlined text-[52px]" id="weather-main-icon">sunny</span>
 </div>
 </div>
 
@@ -247,17 +247,17 @@
 <div class="p-space-xs bg-surface-container-low rounded-lg">
 <span class="material-symbols-outlined text-secondary text-[18px]">humidity_percentage</span>
 <span class="font-label-sm text-label-sm text-outline block mt-0.5">Humedad</span>
-<span class="font-title-md text-title-md text-primary font-bold">58%</span>
+<span class="font-title-md text-title-md text-primary font-bold" id="weather-humidity">58%</span>
 </div>
 <div class="p-space-xs bg-surface-container-low rounded-lg">
 <span class="material-symbols-outlined text-secondary text-[18px]">air</span>
 <span class="font-label-sm text-label-sm text-outline block mt-0.5">Viento</span>
-<span class="font-title-md text-title-md text-primary font-bold">14 km/h</span>
+<span class="font-title-md text-title-md text-primary font-bold" id="weather-wind">14 km/h</span>
 </div>
 <div class="p-space-xs bg-surface-container-low rounded-lg">
 <span class="material-symbols-outlined text-secondary text-[18px]">nest_eco_leaf</span>
 <span class="font-label-sm text-label-sm text-outline block mt-0.5">Aire (AQI)</span>
-<span class="font-title-md text-title-md text-secondary font-bold">28 Buena</span>
+<span class="font-title-md text-title-md text-secondary font-bold" id="weather-aqi">28 Buena</span>
 </div>
 </div>
 
@@ -266,39 +266,39 @@
 <div class="space-y-space-xs">
 <div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
 <div class="flex items-center gap-space-sm">
-<span class="font-label-md text-label-md text-primary font-bold w-16">Mañana</span>
-<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">sunny</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Soleado</span>
+<span class="font-label-md text-label-md text-primary font-bold w-16" id="forecast-day-1">Mañana</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-[20px]" id="forecast-icon-1">sunny</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="forecast-desc-1">Soleado</span>
 </div>
 <div class="font-label-md text-label-md text-on-surface">
-<span class="font-bold text-primary">24°C</span> / <span class="text-outline">16°C</span>
+<span class="font-bold text-primary" id="forecast-max-1">24°C</span> / <span class="text-outline" id="forecast-min-1">16°C</span>
 </div>
 </div>
 <div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
 <div class="flex items-center gap-space-sm">
-<span class="font-label-md text-label-md text-primary font-bold w-16">Día 2</span>
-<span class="material-symbols-outlined text-secondary text-[20px]">rainy</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Lluvia ligera</span>
+<span class="font-label-md text-label-md text-primary font-bold w-16" id="forecast-day-2">Día 2</span>
+<span class="material-symbols-outlined text-secondary text-[20px]" id="forecast-icon-2">rainy</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="forecast-desc-2">Lluvia ligera</span>
 </div>
 <div class="font-label-md text-label-md text-on-surface">
-<span class="font-bold text-primary">21°C</span> / <span class="text-outline">14°C</span>
+<span class="font-bold text-primary" id="forecast-max-2">21°C</span> / <span class="text-outline" id="forecast-min-2">14°C</span>
 </div>
 </div>
 <div class="flex items-center justify-between p-space-xs rounded-lg hover:bg-surface-container-low transition-colors">
 <div class="flex items-center gap-space-sm">
-<span class="font-label-md text-label-md text-primary font-bold w-16">Día 3</span>
-<span class="material-symbols-outlined text-on-tertiary-container text-[20px]">clear_day</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant">Despejado</span>
+<span class="font-label-md text-label-md text-primary font-bold w-16" id="forecast-day-3">Día 3</span>
+<span class="material-symbols-outlined text-on-tertiary-container text-[20px]" id="forecast-icon-3">clear_day</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="forecast-desc-3">Despejado</span>
 </div>
 <div class="font-label-md text-label-md text-on-surface">
-<span class="font-bold text-primary">23°C</span> / <span class="text-outline">15°C</span>
+<span class="font-bold text-primary" id="forecast-max-3">23°C</span> / <span class="text-outline" id="forecast-min-3">15°C</span>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="pt-space-sm mt-space-sm bg-surface-container-low p-space-xs rounded-lg text-center font-body-sm text-body-sm text-outline">
-          Actualizado hace 8 min vía Red Meteorológica JMA
+<div class="pt-space-sm mt-space-sm bg-surface-container-low p-space-xs rounded-lg text-center font-body-sm text-body-sm text-outline" id="weather-updated">
+          Cargando clima…
         </div>
 </div>
 
@@ -342,11 +342,11 @@
 <div class="grid grid-cols-2 gap-space-sm">
 <div>
 <label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Fecha de Inicio</label>
-<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" type="date" value="2026-04-10">
+<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="trip-start" type="date" value="2026-04-10">
 </div>
 <div>
 <label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Fecha de Fin</label>
-<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" type="date" value="2026-04-16">
+<input class="w-full px-space-sm py-2 rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" id="trip-end" type="date" value="2026-04-16">
 </div>
 </div>
 
@@ -361,7 +361,7 @@
 
 <div>
 <label class="block font-label-md text-label-md text-on-surface mb-1 font-semibold">Notas y Preferencias</label>
-<textarea class="w-full p-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" placeholder="Preferencias de transporte, reservas de tren Shinkansen o alergias gastronómicas..." rows="2">Incluir pase JR Tokyo Pass de 3 días y reservas de cena en Shinjuku.</textarea>
+<textarea id="trip-notes" class="w-full p-space-sm rounded-lg bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-secondary/50 transition-all" placeholder="Preferencias de transporte, reservas de tren Shinkansen o alergias gastronómicas..." rows="2">Incluir pase JR Tokyo Pass de 3 días y reservas de cena en Shinjuku.</textarea>
 </div>
 
 <button class="w-full inline-flex items-center justify-center gap-space-xs py-space-md rounded-lg bg-on-tertiary-container hover:bg-tertiary text-on-tertiary font-label-lg text-label-lg shadow-md transition-all transform active:scale-98" type="submit">

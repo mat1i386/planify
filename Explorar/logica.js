@@ -1,4 +1,4 @@
-tailwind.config = {
+﻿tailwind.config = {
     darkMode: "class",
     theme: {
       extend: {
@@ -111,6 +111,7 @@ function quickFilter(destination) {
       if (input) input.value = destination;
       if (title) title.innerText = destination;
       if (tripDest) tripDest.value = destination;
+      buscarDestino(destination);
     }
 
     function triggerSearch() {
@@ -120,6 +121,7 @@ function quickFilter(destination) {
       if (input && input.value) {
         if (title) title.innerText = input.value;
         if (tripDest) tripDest.value = input.value;
+        buscarDestino(input.value);
       }
     }
 
@@ -132,7 +134,7 @@ function quickFilter(destination) {
         favText.innerText = 'En Favoritos';
         favIcon.style.fontVariationSettings = "'FILL' 1";
       } else {
-        favText.innerText = 'Añadir a Favoritos';
+        favText.innerText = 'AÃ±adir a Favoritos';
         favIcon.style.fontVariationSettings = "'FILL' 0";
       }
     }
@@ -165,4 +167,118 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     saveItineraryAlert();
   });
+});
+
+const API_KEY = "rc_live_a713887abaf140b993ff04839a7984f9";
+
+function obtenerPaisDesdeDestino(destination) {
+  const value = destination.trim();
+  const commaParts = value.split(",");
+  return commaParts.length > 1
+    ? commaParts[commaParts.length - 1].trim()
+    : value.split(" - ")[0].trim();
+}
+
+const CAMPOS = "names,codes,capitals,region,subregion,population,languages,currencies,timezones";
+
+const normalizar = (texto) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+function obtenerMoneda(currencies) {
+  if (!currencies) return null;
+  if (Array.isArray(currencies)) return currencies[0];
+  const [codigo, datos] = Object.entries(currencies)[0] || [];
+  return datos ? { code: codigo, ...datos } : null;
+}
+
+function obtenerIdioma(languages) {
+  const idioma = Array.isArray(languages) ? languages[0] : Object.values(languages || {})[0];
+  if (typeof idioma === "string") return idioma;
+  return idioma?.name || idioma?.english_name || idioma?.native_name || "No disponible";
+}
+
+function limpiarFicha() {
+  ["capital", "region", "population", "language", "currency", "timezone"].forEach((campo) => {
+    const element = document.getElementById(`destination-${campo}`);
+    if (element) element.textContent = "No disponible";
+  });
+}
+
+function actualizarFichaGeopolitica(country) {
+  console.log("Datos del país:", country); // bórralo cuando confirmes que todo se ve bien
+
+  const currency = obtenerMoneda(country.currencies);
+  const simbolo = currency?.symbol ? ` ${currency.symbol}` : "";
+  const population = typeof country.population === "number"
+    ? `${(country.population / 1000000).toFixed(1)} M`
+    : "No disponible";
+
+  const fields = {
+    "destination-capital":
+      country.capitals?.find((capital) => capital.attributes?.primary)?.name ||
+      country.capitals?.[0]?.name ||
+      "No disponible",
+    "destination-region": country.subregion || country.region || "No disponible",
+    "destination-population": population,
+    "destination-language": obtenerIdioma(country.languages),
+    "destination-currency": currency
+      ? `${currency.name || currency.code} (${currency.code || ""}${simbolo})`
+      : "No disponible",
+    "destination-timezone": country.timezones?.[0] || "No disponible"
+  };
+
+  Object.entries(fields).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+    if (element) element.textContent = value;
+  });
+}
+
+async function pedirPaises(ruta, texto) {
+  const url = `https://api.restcountries.com/countries/v5/${ruta}?q=${encodeURIComponent(texto)}&response_fields=${CAMPOS}&limit=25`;
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${API_KEY}` }
+  });
+
+  if (!response.ok) {
+    throw new Error(`No se pudo consultar la API (${response.status})`);
+  }
+
+  const data = await response.json();
+  return data.data?.objects || [];
+}
+
+function elegirPais(lista, texto) {
+  const buscado = normalizar(texto);
+  return (
+    lista.find(
+      (pais) =>
+        normalizar(pais.names?.translations?.spa?.common || "") === buscado ||
+        normalizar(pais.names?.common || "") === buscado
+    ) || lista[0]
+  );
+}
+
+async function buscarDestino(destination) {
+  const countryName = obtenerPaisDesdeDestino(destination);
+  if (!countryName) return;
+
+  try {
+    let lista = await pedirPaises("names.translations", countryName); // nombre en español
+    if (!lista.length) lista = await pedirPaises("name", countryName); // nombre en inglés o nativo
+
+    const country = elegirPais(lista, countryName);
+    if (!country) {
+      throw new Error("La API no devolvió información del destino");
+    }
+
+    actualizarFichaGeopolitica(country);
+  } catch (error) {
+    console.error("Error al consultar REST Countries:", error);
+    limpiarFicha();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("search-input");
+  if (searchInput?.value) buscarDestino(searchInput.value);
 });

@@ -190,11 +190,15 @@ function limpiarFicha() {
     const element = document.getElementById(`destination-${campo}`);
     if (element) element.textContent = "No disponible";
   });
+
+  ultimaSolicitudFoto++; // cancela cualquier foto pendiente
+  mostrarFotoDestino(null);
+  ponerTexto("destination-name", "—");
+  ponerTexto("destination-codes", "Código: —");
+  document.getElementById("destination-flag")?.classList.add("hidden");
 }
 
 function actualizarFichaGeopolitica(country) {
-  console.log("Datos del país:", country); // bórralo cuando confirmes que todo se ve bien
-
   const currency = obtenerMoneda(country.currencies);
   const simbolo = currency?.symbol ? ` ${currency.symbol}` : "";
   const population = typeof country.population === "number"
@@ -219,6 +223,138 @@ function actualizarFichaGeopolitica(country) {
     const element = document.getElementById(id);
     if (element) element.textContent = value;
   });
+
+  actualizarConversionMoneda(codigosMoneda(country.currencies));
+  actualizarBanderaYCodigos(country);
+}
+
+/* ===================== Monedas (Currencies API de REST Countries) ===================== */
+const CLAVE_TASAS = "planify:tasasUSD-restcountries";
+
+// Una sola consulta trae la tabla de TODAS las monedas contra USD; se guarda 12 horas
+// (en el plan gratis las tasas se actualizan cada 24 h, así que no se pierde frescura).
+async function obtenerTasas() {
+  const guardadas = leerStorage(CLAVE_TASAS, null);
+  if (guardadas && Date.now() < guardadas.vence) return guardadas;
+
+  try {
+    const response = await fetch("https://api.restcountries.com/currencies/v1/rates/USD", {
+      headers: { Authorization: `Bearer ${API_KEY}` }
+    });
+    if (!response.ok) {
+      const cuerpo = await response.json().catch(() => null);
+      throw new Error(`(${response.status}) ${cuerpo?.errors?.[0]?.message || "Sin detalle"}`);
+    }
+
+    const data = await response.json();
+    const tabla = data.data?.objects?.[0];
+    if (!tabla?.rates) throw new Error("La API de monedas no devolvió tasas");
+
+    const tasas = { rates: tabla.rates, asOf: tabla.as_of, vence: Date.now() + 12 * 60 * 60 * 1000 };
+    guardarStorage(CLAVE_TASAS, tasas);
+    return tasas;
+  } catch (error) {
+    if (guardadas) return guardadas; // si la API falla, usa la última tabla guardada
+    throw error;
+  }
+}
+
+const nombresMoneda = (() => {
+  try {
+    return new Intl.DisplayNames(["es"], { type: "currency" });
+  } catch {
+    return null;
+  }
+})();
+
+function nombreMoneda(codigo) {
+  try {
+    return nombresMoneda?.of(codigo) || codigo;
+  } catch {
+    return codigo;
+  }
+}
+
+const capitalizar = (texto) => texto.charAt(0).toUpperCase() + texto.slice(1);
+
+function codigosMoneda(currencies) {
+  if (!currencies) return [];
+  const lista = Array.isArray(currencies) ? currencies.map((moneda) => moneda?.code) : Object.keys(currencies);
+  return lista.filter(Boolean);
+}
+
+// Busca una moneda por código ("COP") o por nombre en español ("yen", "peso colombiano").
+// Con aproximada = true también acepta nombres parciales ("dólar") si solo hay una coincidencia.
+async function buscarMoneda(texto, aproximada = false) {
+  const buscado = normalizar(texto);
+  if (buscado.length < 3) return null;
+
+  const { rates } = await obtenerTasas();
+  const codigos = Array.from(new Set(["USD", ...Object.keys(rates)]));
+
+  const porCodigo = codigos.find((codigo) => codigo.toLowerCase() === buscado);
+  if (porCodigo) return porCodigo;
+
+  const exactas = codigos.filter((codigo) => normalizar(nombreMoneda(codigo)) === buscado);
+  if (exactas.length === 1) return exactas[0];
+  if (!aproximada) return null;
+
+  const parecidas = codigos.filter((codigo) => normalizar(nombreMoneda(codigo)).includes(buscado));
+  if (parecidas.length === 1) return parecidas[0];
+  if (parecidas.length > 1) {
+    const error = new Error("Hay varias monedas con ese nombre");
+    error.mensajeUsuario = `Varias monedas (${parecidas.slice(0, 4).join(", ")}…): escribe el código`;
+    throw error;
+  }
+  return null;
+}
+
+let ultimaSolicitudMoneda = 0;
+
+async function actualizarConversionMoneda(codigos) {
+  const solicitud = ++ultimaSolicitudMoneda;
+  ponerTexto("currency-conversion", "Cargando conversión…");
+  ponerTexto("currency-rate-status", "Actualizando");
+
+  try {
+    const lista = [].concat(codigos || []).map((codigo) => String(codigo).toUpperCase());
+    if (!lista.length) throw new Error("El destino no tiene una moneda válida");
+
+    const { rates, asOf } = await obtenerTasas();
+    if (solicitud !== ultimaSolicitudMoneda) return;
+
+    // Si el país usa varias monedas, toma la primera que tenga tasa
+    const codigo = lista.find((c) => c === "USD" || Number.isFinite(Number(rates[c])));
+    if (!codigo) throw new Error(`No hay tasa para ${lista.join(", ")}`);
+
+    const tasa = codigo === "USD" ? 1 : Number(rates[codigo]);
+    ponerTexto("currency-conversion", `1 USD ≈ ${tasa.toLocaleString("es-ES", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: tasa < 0.01 ? 8 : 4
+    })} ${codigo}`);
+
+    const fecha = asOf
+      ? new Date(asOf * 1000).toLocaleDateString("es", { day: "numeric", month: "short" })
+      : "";
+    ponerTexto("currency-rate-status", fecha ? `Tasa del ${fecha}` : "Tasa del día");
+  } catch (error) {
+    if (solicitud !== ultimaSolicitudMoneda) return;
+    console.error("Error al consultar la tasa de cambio:", error);
+    ponerTexto("currency-conversion", error.mensajeUsuario || "Conversión no disponible");
+    ponerTexto("currency-rate-status", "Sin datos");
+  }
+}
+
+// Cuando el usuario escribe una moneda en vez de un país
+function mostrarMoneda(codigo) {
+  ultimaSolicitudClima++; // cancela cualquier clima pendiente
+  limpiarFicha();
+
+  const nombre = `${capitalizar(nombreMoneda(codigo))} (${codigo})`;
+  ponerTexto("current-destination-title", nombre);
+  ponerTexto("destination-currency", nombre);
+  mostrarErrorClima("Escribe un país o ciudad para ver el clima.");
+  actualizarConversionMoneda(codigo);
 }
 
 async function pedirPaises(ruta, texto) {
@@ -236,35 +372,100 @@ async function pedirPaises(ruta, texto) {
   return data.data?.objects || [];
 }
 
-function elegirPais(lista, texto) {
-  const buscado = normalizar(texto);
-  return (
-    lista.find(
-      (pais) =>
-        normalizar(pais.names?.translations?.spa?.common || "") === buscado ||
-        normalizar(pais.names?.common || "") === buscado
-    ) || lista[0]
-  );
+/* ===================== País, ciudad o moneda: buscarDestino ===================== */
+const CLAVE_PAISES = "planify:paises";
+
+// Solo acepta coincidencia EXACTA de nombre (así "Roma" no devuelve Rumanía)
+function coincidePais(pais, buscado) {
+  return [
+    pais.names?.common,
+    pais.names?.official,
+    pais.names?.translations?.spa?.common,
+    pais.names?.translations?.spa?.official
+  ].some((nombre) => nombre && normalizar(nombre) === buscado);
 }
 
-async function buscarDestino(destination) {
-  const countryName = obtenerPaisDesdeDestino(destination);
-  if (!countryName) return;
-    actualizarBotonFavorito();
-  cargarClima(destination);
-  try {
-    let lista = await pedirPaises("names.translations", countryName); // nombre en español
-    if (!lista.length) lista = await pedirPaises("name", countryName); // nombre en inglés o nativo
+function guardarPaisEnCache(nombre, pais) {
+  const cache = leerStorage(CLAVE_PAISES, {});
+  cache[normalizar(nombre)] = pais;
+  guardarStorage(CLAVE_PAISES, cache);
+}
 
-    const country = elegirPais(lista, countryName);
-    if (!country) {
-      throw new Error("La API no devolvió información del destino");
+async function buscarPaisEnApi(nombre) {
+  const buscado = normalizar(nombre);
+  const cache = leerStorage(CLAVE_PAISES, {});
+  if (cache[buscado]) return cache[buscado]; // sin gastar peticiones si ya lo buscaste
+
+  for (const ruta of ["names.translations", "name"]) { // español, luego inglés/nativo
+    const lista = await pedirPaises(ruta, nombre);
+    const pais = lista.find((candidato) => coincidePais(candidato, buscado));
+    if (pais) {
+      guardarPaisEnCache(nombre, pais);
+      return pais;
+    }
+  }
+  return null;
+}
+
+async function resolverPais(texto) {
+  const nombre = obtenerPaisDesdeDestino(texto);
+  const directo = await buscarPaisEnApi(nombre);
+  if (directo) return directo;
+
+  // Puede ser una ciudad ("Kioto"): Nominatim dice a qué país pertenece
+  const lugar = await obtenerLugar(texto).catch(() => null);
+  if (!lugar?.pais) return null;
+
+  const pais = await buscarPaisEnApi(lugar.pais);
+  if (pais) guardarPaisEnCache(nombre, pais);
+  return pais;
+}
+
+let ultimaBusqueda = 0;
+
+async function buscarDestino(destination) {
+  const texto = destination.trim();
+  if (!texto) return;
+
+  const busqueda = ++ultimaBusqueda;
+  actualizarBotonFavorito();
+
+  // 1) ¿Escribió una moneda? ("COP", "yen", "peso colombiano")
+  const moneda = await buscarMoneda(texto).catch(() => null);
+  if (busqueda !== ultimaBusqueda) return;
+  if (moneda) {
+    mostrarMoneda(moneda);
+    return;
+  }
+
+  // 2) País o ciudad
+  cargarClima(destination);
+
+  try {
+    const country = await resolverPais(texto);
+    if (busqueda !== ultimaBusqueda) return;
+    if (country) {
+      actualizarFichaGeopolitica(country);
+      cargarFotoDestino(texto, country);
+      return;
     }
 
-    actualizarFichaGeopolitica(country);
+    // 3) Último recurso: nombre de moneda parcial ("dólar")
+    const parcial = await buscarMoneda(texto, true);
+    if (busqueda !== ultimaBusqueda) return;
+    if (parcial) {
+      mostrarMoneda(parcial);
+      return;
+    }
+
+    throw new Error(`No se encontró ningún país, ciudad ni moneda llamado "${texto}"`);
   } catch (error) {
-    console.error("Error al consultar REST Countries:", error);
+    if (busqueda !== ultimaBusqueda) return;
+    console.error("Error al buscar el destino:", error);
     limpiarFicha();
+    ultimaSolicitudMoneda++;
+    ponerTexto("currency-conversion", error.mensajeUsuario || "Conversión no disponible");
+    ponerTexto("currency-rate-status", "Sin datos");
   }
 }
 
@@ -442,25 +643,48 @@ function ponerTexto(id, texto) {
   if (element) element.textContent = texto;
 }
 
-async function obtenerCoordenadas(destination) {
+const CLAVE_LUGARES = "planify:lugares";
+const lugaresEnVuelo = {};
+
+// Nominatim: coordenadas + país (en inglés) de una ciudad o país. Se guarda en localStorage.
+function obtenerLugar(destination) {
   const { pais, ciudad } = separarDestino(destination);
   const consulta = [ciudad, pais].filter(Boolean).join(", ");
   const clave = normalizar(consulta);
 
-  const cache = leerStorage(CLAVE_COORDENADAS, {});
-  if (cache[clave]) return cache[clave]; // evita repetir llamadas a Nominatim
+  const cache = leerStorage(CLAVE_LUGARES, {});
+  if (cache[clave]) return Promise.resolve(cache[clave]);
+  if (lugaresEnVuelo[clave]) return lugaresEnVuelo[clave]; // evita pedir lo mismo dos veces a la vez
 
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(consulta)}&format=jsonv2&limit=1&accept-language=es`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Nominatim respondió ${response.status}`);
+  lugaresEnVuelo[clave] = (async () => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(consulta)}&format=jsonv2&limit=1&addressdetails=1&accept-language=en`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Nominatim respondió ${response.status}`);
 
-  const resultados = await response.json();
-  if (!resultados.length) throw new Error(`No se encontraron coordenadas para "${consulta}"`);
+      const resultados = await response.json();
+      if (!resultados.length) throw new Error(`No se encontró el lugar "${consulta}"`);
 
-  const coordenadas = { lat: Number(resultados[0].lat), lon: Number(resultados[0].lon) };
-  cache[clave] = coordenadas;
-  guardarStorage(CLAVE_COORDENADAS, cache);
-  return coordenadas;
+      const lugar = {
+        lat: Number(resultados[0].lat),
+        lon: Number(resultados[0].lon),
+        pais: resultados[0].address?.country || ""
+      };
+      const actualizado = leerStorage(CLAVE_LUGARES, {});
+      actualizado[clave] = lugar;
+      guardarStorage(CLAVE_LUGARES, actualizado);
+      return lugar;
+    } finally {
+      delete lugaresEnVuelo[clave];
+    }
+  })();
+
+  return lugaresEnVuelo[clave];
+}
+
+async function obtenerCoordenadas(destination) {
+  const { lat, lon } = await obtenerLugar(destination);
+  return { lat, lon };
 }
 
 async function pedirClima(lat, lon) {
@@ -553,4 +777,112 @@ async function cargarClima(destination) {
     console.error("Error al cargar el clima:", error);
     mostrarErrorClima("No se pudo cargar el clima de este destino.");
   }
+}
+
+/* ===================== Foto, bandera y códigos del destino ===================== */
+const CLAVE_FOTOS = "planify:fotos";
+let ultimaSolicitudFoto = 0;
+
+function actualizarBanderaYCodigos(country) {
+  const alpha2 = country.codes?.alpha_2;
+  const alpha3 = country.codes?.alpha_3;
+  const nombre = country.names?.translations?.spa?.common || country.names?.common || "";
+
+  const bandera = document.getElementById("destination-flag");
+  if (bandera && alpha2) {
+    bandera.src = `https://flags.restcountries.com/v5/w160/${alpha2.toLowerCase()}.png`; // CDN gratuito de banderas
+    bandera.alt = `Bandera de ${nombre}`;
+    bandera.classList.remove("hidden");
+  }
+
+  ponerTexto("destination-name", nombre || "—");
+  ponerTexto("destination-codes", alpha2 && alpha3 ? `Código: ${alpha3} / ${alpha2}` : alpha2 ? `Código: ${alpha2}` : "Código: —");
+}
+
+// Resumen de un artículo de Wikipedia: trae la foto principal (ciudad o país)
+async function obtenerFotoWikipedia({ idioma, titulo }) {
+  const clave = `${idioma}:${normalizar(titulo)}`;
+  const cache = leerStorage(CLAVE_FOTOS, {});
+  if (cache[clave]) return cache[clave];
+
+  try {
+    const url = `https://${idioma}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(titulo.trim().replace(/ /g, "_"))}`;
+    const response = await fetch(url);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    if (data.type === "disambiguation") return null; // página ambigua (p. ej. "Valencia"): no sirve
+
+    const miniatura = data.thumbnail?.source || data.originalimage?.source;
+    if (!miniatura) return null;
+
+    const foto = { thumb: miniatura, pagina: data.content_urls?.desktop?.page || "", titulo: data.title || titulo };
+    const actualizado = leerStorage(CLAVE_FOTOS, {});
+    actualizado[clave] = foto;
+    guardarStorage(CLAVE_FOTOS, actualizado);
+    return foto;
+  } catch (error) {
+    console.error(`No se pudo consultar Wikipedia (${idioma}) para "${titulo}":`, error);
+    return null;
+  }
+}
+
+// Las miniaturas vienen pequeñas (~320 px); se pide una más grande y, si falla, se usa la original
+function ampliarMiniatura(url) {
+  return url.includes("/thumb/") ? url.replace(/\/\d+px-([^/]+)$/, "/960px-$1") : url;
+}
+
+function mostrarFotoDestino(foto, descripcion = "") {
+  const img = document.getElementById("destination-photo");
+  const credito = document.getElementById("destination-photo-credit");
+  if (!img) return;
+
+  if (!foto) { // sin foto: mejor vacío que dejar la de otro destino
+    img.classList.add("hidden");
+    credito?.classList.add("hidden");
+    return;
+  }
+
+  img.classList.remove("hidden");
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = foto.thumb;
+  };
+  img.alt = descripcion || foto.titulo || "Foto del destino";
+  img.src = ampliarMiniatura(foto.thumb);
+
+  if (credito) {
+    credito.href = foto.pagina || "https://www.wikipedia.org";
+    credito.classList.remove("hidden");
+  }
+}
+
+// Orden de búsqueda: ciudad escrita → capital → país
+function candidatosFoto(texto, country) {
+  const { ciudad } = separarDestino(texto);
+  const escribioPais = coincidePais(country, normalizar(obtenerPaisDesdeDestino(texto)));
+  const capital =
+    country.capitals?.find((c) => c.attributes?.primary)?.name || country.capitals?.[0]?.name;
+  const nombrePais = country.names?.translations?.spa?.common || country.names?.common;
+
+  const lista = [];
+  if (ciudad) lista.push({ idioma: "es", titulo: ciudad });
+  else if (!escribioPais) lista.push({ idioma: "es", titulo: texto }); // escribió solo una ciudad ("Kioto")
+  if (capital) lista.push({ idioma: "en", titulo: capital }); // REST Countries da la capital en inglés
+  if (nombrePais) lista.push({ idioma: "es", titulo: nombrePais });
+  return lista;
+}
+
+async function cargarFotoDestino(texto, country) {
+  const solicitud = ++ultimaSolicitudFoto;
+
+  for (const candidato of candidatosFoto(texto, country)) {
+    const foto = await obtenerFotoWikipedia(candidato);
+    if (solicitud !== ultimaSolicitudFoto) return; // el usuario ya buscó otra cosa
+    if (foto) {
+      mostrarFotoDestino(foto, `Foto de ${foto.titulo}`);
+      return;
+    }
+  }
+  if (solicitud === ultimaSolicitudFoto) mostrarFotoDestino(null);
 }

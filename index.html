@@ -76,10 +76,10 @@
             Conexión directa con bases de datos globales de países y territorios: información oficial de capitales, regiones geopolíticas, demografía, divisas locales e idiomas primarios.
           </p>
 </div>
-<div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<a href="favoritos/index.html" class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
 <span class="">Consultar fichas técnicas</span>
 <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</div>
+</a>
 </div>
 
 <div class="group relative bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
@@ -92,10 +92,10 @@
             Pronóstico meteorológico hiperlocal en tiempo real, sensación térmica calibrada, índices de radiación UV, velocidad y dirección de ráfagas e informes de calidad de aire (AQI).
           </p>
 </div>
-<div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<a href="#weather-section" class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
 <span class="">Ver mapa radar</span>
 <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-</div>
+</a>
 </div>
 
 <div class="group relative bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
@@ -109,8 +109,10 @@
           </p>
 </div>
 <div class="flex items-center gap-space-xs text-secondary font-label-lg text-label-lg font-semibold pt-space-xs">
+<a href="itinerario/index.html" class="flex items-center gap-space-xs">
 <span class="">Diseñar cronograma</span>
 <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
 </div>
 </div>
 </div>
@@ -153,19 +155,14 @@
 <div class="lg:col-span-4 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-md">
 
 <div class="relative w-full h-44 rounded-lg overflow-hidden bg-surface-container">
-<img class="w-full h-full object-cover" data-alt="Tokyo city skyline with Mount Fuji visible on the horizon during sunrise, vivid warm light and modern skyscrapers, highly detailed realistic travel photography" src="imagenes/Japon.jpg">
-
+<img id="destination-photo" class="w-full h-full object-cover" alt="Foto del destino" src="imagenes/Japon.jpg">
+<a id="destination-photo-credit" class="absolute bottom-3 right-3 px-2 py-0.5 rounded bg-primary/80 backdrop-blur-sm text-on-primary font-label-sm text-label-sm hidden" href="https://www.wikipedia.org" target="_blank" rel="noopener noreferrer">Foto: Wikipedia</a>
 <div class="absolute bottom-3 left-3 bg-surface-container-lowest/95 backdrop-blur-sm p-1.5 rounded-lg shadow-md flex items-center gap-2">
 
-<svg class="w-8 h-5 rounded shadow-xs" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
-<rect fill="#ffffff" height="600" width="900"></rect>
-<circle cx="450" cy="300" fill="#bc002d" r="180"></circle>
-</svg>
-<span class="font-label-md text-label-md text-primary font-bold pr-1">Japón (日本)</span>
+<img id="destination-flag" class="w-8 h-5 rounded shadow-xs object-cover" alt="Bandera de Japón" src="https://flags.restcountries.com/v5/w160/jp.png">
+<span id="destination-name" class="font-label-md text-label-md text-primary font-bold pr-1">Japón</span>
 </div>
-<span class="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/80 backdrop-blur-sm text-on-primary font-label-sm text-label-sm">
-            Código: JPN / JP
-          </span>
+<span id="destination-codes" class="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/80 backdrop-blur-sm text-on-primary font-label-sm text-label-sm">Código: JPN / JP</span>
 </div>
 <div>
 <h4 class="font-title-md text-title-md text-primary font-bold flex items-center gap-1.5 mb-space-xs">
@@ -190,6 +187,10 @@
 <span class="font-label-sm text-label-sm text-outline block">Población</span>
 <span class="font-title-md text-title-md text-primary font-bold" id="destination-population">125.7 M</span>
 </div>
+<div class="p-space-xs">
+<span class="font-label-sm text-label-sm text-outline block">Área</span>
+<span class="font-title-md text-title-md text-primary font-bold" id="destination-area">377,975 km²</span>
+</div>
 <!DOCTYPE html><html lang="es"><head>
 <div class="p-space-xs">
 <span class="font-label-sm text-label-sm text-outline block">Idioma Oficial</span>
@@ -208,13 +209,13 @@
 <div class="p-space-sm rounded-lg bg-surface-container-high flex items-center justify-between">
 <div class="flex items-center gap-2">
 <span class="material-symbols-outlined text-secondary text-[20px]">currency_exchange</span>
-<span class="font-label-md text-label-md text-on-surface">1 USD ≈ 154.20 JPY</span>
+<span class="font-label-md text-label-md text-on-surface" id="currency-conversion">Cargando conversión…</span>
 </div>
-<span class="font-label-sm text-label-sm text-secondary font-semibold">Tasa Oficial</span>
+<span class="font-label-sm text-label-sm text-secondary font-semibold" id="currency-rate-status">Tasa en vivo</span>
 </div>
 </div>
 
-<div class="lg:col-span-8 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
+<div id="weather-section" class="lg:col-span-8 bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between">
 <div>
 
 <div class="flex items-center justify-between mb-space-sm">

@@ -25,7 +25,7 @@
 <span class="material-symbols-outlined text-base">favorite</span>
 </div>
 <div class="flex flex-col">
-<span class="font-title-md text-title-md text-primary font-bold leading-tight">6</span>
+<span class="font-title-md text-title-md text-primary font-bold leading-tight" id="favorite-total">0</span>
 <span class="font-label-sm text-label-sm text-on-surface-variant">Guardados</span>
 </div>
 </div>
@@ -35,7 +35,7 @@
 <span class="material-symbols-outlined text-base">public</span>
 </div>
 <div class="flex flex-col">
-<span class="font-title-md text-title-md text-secondary font-bold leading-tight">4</span>
+<span class="font-title-md text-title-md text-secondary font-bold leading-tight" id="country-total">0</span>
 <span class="font-label-sm text-label-sm text-on-surface-variant">Países</span>
 </div>
 </div>
@@ -45,7 +45,7 @@
 <span class="material-symbols-outlined text-base">route</span>
 </div>
 <div class="flex flex-col">
-<span class="font-title-md text-title-md text-tertiary-container font-bold leading-tight">2</span>
+<span class="font-title-md text-title-md text-tertiary-container font-bold leading-tight" id="route-total">0</span>
 <span class="font-label-sm text-label-sm text-on-surface-variant">En Ruta</span>
 </div>
 </div>
@@ -430,13 +430,13 @@
 <span class="material-symbols-outlined text-secondary">folder_special</span>
 <h2 class="font-title-lg text-title-lg text-primary font-bold">Colecciones y Listas</h2>
 </div>
-<span class="font-label-sm text-label-sm text-on-surface-variant">3 activas</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="list-count">0 activas</span>
 </div>
 <p class="font-body-sm text-body-sm text-on-surface-variant">
             Agrupa tus favoritos según la ocasión o temporada para planificar presupuestos conjuntos.
           </p>
 
-<div class="flex flex-col gap-space-sm">
+<div class="flex flex-col gap-space-sm" id="custom-lists-container">
 
 <div class="p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex items-center justify-between cursor-pointer group">
 <div class="flex items-center gap-space-sm">
@@ -478,13 +478,13 @@
 </div>
 </div>
 
-<button class="w-full py-2.5 px-space-md rounded-lg bg-on-tertiary-container hover:bg-tertiary-container text-on-primary font-label-lg text-label-lg font-semibold shadow-md transition-all flex items-center justify-center gap-space-xs mt-space-xs">
+<button id="create-list-btn" type="button" class="w-full py-2.5 px-space-md rounded-lg bg-on-tertiary-container hover:bg-tertiary-container text-on-primary font-label-lg text-label-lg font-semibold shadow-md transition-all flex items-center justify-center gap-space-xs mt-space-xs">
 <span class="material-symbols-outlined text-base">add</span>
 <span class="">+ Crear Nueva Lista</span>
 </button>
 </div>
 
-<div class="bg-primary-container text-on-primary p-space-lg rounded-xl shadow-md flex flex-col gap-space-sm relative overflow-hidden">
+<div class="hidden bg-primary-container text-on-primary p-space-lg rounded-xl shadow-md flex flex-col gap-space-sm relative overflow-hidden" id="seasonal-suggestion">
 <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/5 pointer-events-none"></div>
 <div class="flex items-center gap-space-xs text-secondary-fixed">
 <span class="material-symbols-outlined text-sm">tips_and_updates</span>

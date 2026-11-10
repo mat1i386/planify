@@ -148,12 +148,60 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("favorite-btn")?.addEventListener("click", toggleFavorite);
+  actualizarBotonFavorito();
+  window.addEventListener("pageshow", actualizarBotonFavorito);
+  document.getElementById("share-destination-btn")?.addEventListener("click", compartirDestino);
+  document.getElementById("export-main-itinerary-btn")?.addEventListener("click", () => window.print());
+
+  const activityForm = document.getElementById("activity-form");
+  document.getElementById("add-activity-btn")?.addEventListener("click", () => {
+    activityForm?.classList.toggle("hidden");
+    activityForm?.querySelector('[name="title"]')?.focus();
+  });
+  activityForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(activityForm);
+    const activities = obtenerActividades();
+    const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
+    const itineraryId = localStorage.getItem("planify:itinerario-seleccionado");
+    const itinerarioActual = itinerarios.find((trip) => String(trip.id) === itineraryId) || itinerarios[itinerarios.length - 1];
+    const actividad = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      title: String(data.get("title")).trim(),
+      day: Number(data.get("day")),
+      time: String(data.get("time") || ""),
+      cost: Number(data.get("cost") || 0),
+      description: String(data.get("description") || "").trim(),
+      itinerarioId: itinerarioActual?.id ?? null
+    };
+    activities.push(actividad);
+    if (itinerarioActual) {
+      itinerarioActual.activities = Array.isArray(itinerarioActual.activities) ? itinerarioActual.activities : [];
+      itinerarioActual.activities.push(actividad);
+      guardarStorage(CLAVE_ITINERARIOS, itinerarios);
+    }
+    if (guardarStorage(CLAVE_ACTIVIDADES, activities)) {
+      activityForm.reset();
+      activityForm.elements.day.value = "1";
+      activityForm.classList.add("hidden");
+      pintarActividades();
+    }
+  });
+  pintarActividades();
+  const itinerariosGuardados = leerStorage(CLAVE_ITINERARIOS, []);
+  const selectedTripId = localStorage.getItem("planify:itinerario-seleccionado");
+  const activeTrip = itinerariosGuardados.find((trip) => String(trip.id) === selectedTripId) || itinerariosGuardados[itinerariosGuardados.length - 1];
+  if (activeTrip) pintarResumenItinerario(activeTrip);
 
   const formItinerario = document.getElementById("itinerary-form");
   formItinerario?.addEventListener("input", (event) => event.target.setCustomValidity?.(""));
   formItinerario?.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (guardarItinerario()) saveItineraryAlert();
+    const itinerario = guardarItinerario();
+    if (itinerario) {
+      pintarResumenItinerario(itinerario);
+      saveItineraryAlert();
+    }
   });
 });
 
@@ -471,13 +519,96 @@ async function buscarDestino(destination) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-input");
+  const linkedDestination = new URLSearchParams(window.location.search).get("destino");
+  if (linkedDestination && searchInput) searchInput.value = linkedDestination;
   if (searchInput?.value) buscarDestino(searchInput.value);
 });
 
 /* ===================== localStorage ===================== */
 const CLAVE_FAVORITOS = "planify:favoritos";
 const CLAVE_ITINERARIOS = "planify:itinerarios";
+const CLAVE_ACTIVIDADES = "planify:actividades-cronograma";
 const CLAVE_COORDENADAS = "planify:coordenadas";
+
+function obtenerActividades() {
+  const activities = leerStorage(CLAVE_ACTIVIDADES, []);
+  return Array.isArray(activities) ? activities : [];
+}
+
+function pintarActividades() {
+  const list = document.getElementById("schedule-list");
+  if (!list) return;
+  const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
+  const selectedId = localStorage.getItem("planify:itinerario-seleccionado");
+  const activeTrip = itinerarios.find((trip) => String(trip.id) === selectedId) || itinerarios[itinerarios.length - 1];
+  const itineraryId = activeTrip?.id;
+  const activities = obtenerActividades()
+    .filter((activity) => !itineraryId || !activity.itinerarioId || String(activity.itinerarioId) === String(itineraryId))
+    .sort((a, b) => a.day - b.day || (a.time || "").localeCompare(b.time || ""));
+  list.replaceChildren();
+  ponerTexto("activity-count", `${activities.length} ${activities.length === 1 ? "actividad" : "actividades"}`);
+  if (!activities.length) {
+    const empty = document.createElement("p");
+    empty.className = "rounded-lg bg-surface-container-low p-space-md text-center font-body-sm text-body-sm text-on-surface-variant";
+    empty.textContent = "Aún no hay actividades. Añade la primera para empezar a planificar.";
+    list.append(empty);
+    return;
+  }
+
+  activities.forEach((activity) => {
+    const card = document.createElement("article");
+    card.className = "p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm";
+    const day = document.createElement("div");
+    day.className = "w-12 h-12 rounded-lg bg-primary-container text-secondary-fixed flex flex-col items-center justify-center shrink-0";
+    day.innerHTML = '<span class="font-label-sm leading-none">DÍA</span>';
+    const dayNumber = document.createElement("span");
+    dayNumber.className = "font-title-lg font-bold leading-none";
+    dayNumber.textContent = String(activity.day).padStart(2, "0");
+    day.append(dayNumber);
+    const details = document.createElement("div");
+    details.className = "flex-1 min-w-0";
+    const heading = document.createElement("div");
+    heading.className = "flex flex-wrap items-center justify-between gap-1";
+    const title = document.createElement("h5");
+    title.className = "font-title-md text-primary font-bold truncate";
+    title.textContent = activity.title;
+    heading.append(title);
+    if (activity.cost > 0) {
+      const cost = document.createElement("span");
+      cost.className = "font-label-md text-secondary font-bold";
+      cost.textContent = `$${Number(activity.cost).toLocaleString("es-CO")} USD`;
+      heading.append(cost);
+    }
+    details.append(heading);
+    if (activity.description) {
+      const description = document.createElement("p");
+      description.className = "font-body-sm text-on-surface-variant mt-0.5";
+      description.textContent = activity.description;
+      details.append(description);
+    }
+    if (activity.time) {
+      const time = document.createElement("p");
+      time.className = "text-outline font-body-sm mt-space-xs";
+      time.textContent = `• ${activity.time}`;
+      details.append(time);
+    }
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "ml-auto rounded px-2 py-1 text-xs font-semibold text-error hover:bg-error-container";
+    remove.textContent = "Eliminar";
+    remove.setAttribute("aria-label", `Eliminar actividad ${activity.title}`);
+    remove.addEventListener("click", () => {
+      const updated = obtenerActividades().filter((item) => String(item.id) !== String(activity.id));
+      if (!guardarStorage(CLAVE_ACTIVIDADES, updated)) return;
+      const trips = leerStorage(CLAVE_ITINERARIOS, []);
+      trips.forEach((trip) => { trip.activities = (trip.activities || []).filter((item) => String(item.id) !== String(activity.id)); });
+      guardarStorage(CLAVE_ITINERARIOS, trips);
+      pintarActividades();
+    });
+    card.append(day, details, remove);
+    list.append(card);
+  });
+}
 
 function leerStorage(clave, porDefecto) {
   try {
@@ -555,6 +686,20 @@ function toggleFavorite() {
   actualizarBotonFavorito();
 }
 
+async function compartirDestino() {
+  const destino = destinoActual();
+  if (!destino) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set("destino", destino);
+  try {
+    if (navigator.share) await navigator.share({ title: `Planify · ${destino}`, text: `Explora este destino en Planify: ${destino}`, url: url.toString() });
+    else if (navigator.clipboard?.writeText) { await navigator.clipboard.writeText(url.toString()); alert("Enlace copiado al portapapeles."); }
+    else window.prompt("Copia el enlace del destino:", url.toString());
+  } catch (error) {
+    if (error.name !== "AbortError") window.prompt("Copia el enlace del destino:", url.toString());
+  }
+}
+
 /* ===================== Itinerario (formulario) ===================== */
 function guardarItinerario() {
   const nombre = document.getElementById("trip-name");
@@ -589,7 +734,7 @@ function guardarItinerario() {
   }
 
   const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
-  itinerarios.push({
+  const itinerario = {
     id: Date.now(),
     nombre: nombre.value.trim(),
     destino: destino.value.trim(),
@@ -598,8 +743,30 @@ function guardarItinerario() {
     presupuesto: presupuesto?.value.trim() || "",
     notas: notas?.value.trim() || "",
     creadoEn: new Date().toISOString()
-  });
-  return guardarStorage(CLAVE_ITINERARIOS, itinerarios);
+  };
+  itinerarios.push(itinerario);
+  localStorage.setItem("planify:itinerario-seleccionado", String(itinerario.id));
+  return guardarStorage(CLAVE_ITINERARIOS, itinerarios) ? itinerario : false;
+}
+
+function pintarResumenItinerario(itinerario) {
+  document.getElementById("saved-trip-summary")?.classList.remove("hidden");
+  const exportButton = document.getElementById("export-main-itinerary-btn");
+  if (exportButton) exportButton.disabled = false;
+  ponerTexto("saved-trip-name", itinerario.nombre);
+  ponerTexto("saved-trip-status", "Borrador");
+  ponerTexto("saved-trip-destination", `Destino: ${itinerario.destino}`);
+  ponerTexto("saved-trip-notes", itinerario.notas ? `Notas: ${itinerario.notas}` : "");
+  ponerTexto("saved-trip-budget", itinerario.presupuesto || "");
+  const fecha = (valor) => valor
+    ? new Date(`${valor}T12:00:00`).toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })
+    : "Sin fecha";
+  let duracion = "";
+  if (itinerario.inicio && itinerario.fin) {
+    const dias = Math.floor((new Date(`${itinerario.fin}T12:00:00`) - new Date(`${itinerario.inicio}T12:00:00`)) / 86400000) + 1;
+    duracion = ` · ${dias} ${dias === 1 ? "día" : "días"}`;
+  }
+  ponerTexto("saved-trip-dates", `${fecha(itinerario.inicio)} – ${fecha(itinerario.fin)}${duracion}`);
 }
 
 /* ===================== Clima: Nominatim + Open-Meteo ===================== */

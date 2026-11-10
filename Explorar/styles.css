@@ -1,2 +1,9 @@
 
 
+@media print {
+  body > header, footer, #itinerary-form, #activity-form, #add-activity-btn,
+  #export-main-itinerary-btn, #save-alert, .trip-actions { display: none !important; }
+  main > div.flex.flex-col > section { display: none !important; }
+  main > div.flex.flex-col > section:last-of-type { display: block !important; }
+  body, main, main > div { background: #fff !important; }
+}

@@ -104,102 +104,136 @@ tailwind.config = {
     }
   };
 
+const KEY_FAVORITES = "planify:favoritos";
+const KEY_LISTS = "planify:listasFavoritos";
+const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+function readLocal(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; } catch (error) { console.error(error); return fallback; } }
+function writeLocal(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (error) { alert("No se pudieron guardar los cambios en este navegador."); return false; } }
+function cardIdFromName(name) { const [city, ...country] = String(name || "").split(",").map((part) => part.trim()); return `${normalizeText(country.join(","))}|${normalizeText(city)}`; }
+let activeCategory = "all";
+let activeQuery = "";
+let activeList = null;
+let sortMode = "recent";
+let favorites = [];
+let lists = [];
+let cardsContainer;
+let cardTemplates = [];
+function favoriteDisplayName(item) { return item.ciudad && item.pais ? `${item.ciudad}, ${item.pais}` : item.destino || item.id; }
+function setFavoriteButton(button, isFavorite) {
+  const icon = button.querySelector(".material-symbols-outlined");
+  if (!icon) return;
+  icon.textContent = isFavorite ? "favorite" : "favorite_border";
+  icon.style.fontVariationSettings = isFavorite ? "'FILL' 1" : "'FILL' 0";
+  button.classList.toggle("text-on-tertiary-container", isFavorite);
+  button.classList.toggle("text-on-surface-variant", !isFavorite);
+}
+function makeGenericCard(item) {
+  const card = document.createElement("article"); card.className = "destination-card overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm";
+  card.dataset.name = favoriteDisplayName(item); card.dataset.category = "ciudades"; card.dataset.popularity = "0"; card.dataset.date = item.guardadoEn || "";
+  const visual = document.createElement("div"); visual.className = "flex h-40 items-end bg-primary-container p-5 text-white";
+  const title = document.createElement("div"); title.append(Object.assign(document.createElement("p"), { className: "text-sm text-secondary-fixed", textContent: item.pais || "Destino guardado" }), Object.assign(document.createElement("h3"), { className: "text-xl font-bold", textContent: item.ciudad || item.destino || "Destino" })); visual.append(title);
+  const actions = document.createElement("div"); actions.className = "flex flex-wrap gap-2 p-4";
+  const heart = document.createElement("button"); heart.type = "button"; heart.className = "favorite-heart rounded-lg bg-surface-container px-3 py-2 text-error"; heart.setAttribute("aria-label", "Quitar de favoritos"); heart.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
+  const view = document.createElement("a"); view.className = "rounded-lg bg-surface-container px-3 py-2 text-sm font-semibold text-primary"; view.textContent = "Ver destino"; view.href = `../index.html?destino=${encodeURIComponent(item.destino || favoriteDisplayName(item))}`;
+  const addList = document.createElement("button"); addList.type = "button"; addList.className = "rounded-lg bg-surface-container px-3 py-2 text-sm font-semibold text-primary"; addList.textContent = "Añadir a lista"; addList.addEventListener("click", () => addFavoriteToList(item.id));
+  actions.append(heart, view, addList); card.append(visual, actions); return card;
+}
+function updateSummary() {
+  const allTab = document.querySelector('[data-category="all"]'); if (allTab) allTab.textContent = `Todos (${favorites.length})`;
+  const countries = new Set(favorites.map((item) => normalizeText(item.pais)).filter(Boolean));
+  document.getElementById("favorite-total").textContent = String(favorites.length);
+  document.getElementById("country-total").textContent = String(countries.size);
+  document.getElementById("route-total").textContent = String(readLocal("planify:itinerarios", []).length);
+  document.getElementById("list-count").textContent = `${lists.length} ${lists.length === 1 ? "activa" : "activas"}`;
+  const japanSaved = favorites.some((item) => item.id === "japon|tokio" || item.id === "japon|kioto");
+  document.getElementById("seasonal-suggestion").classList.toggle("hidden", !japanSaved);
+}
+function applyFilters() {
+  let visibleCount = 0;
+  cardsContainer.querySelectorAll(".destination-card").forEach((card) => {
+    const item = favorites.find((favorite) => String(favorite.id) === card.dataset.favoriteId);
+    const categoryMatches = activeCategory === "all" || (card.dataset.category || "").split(/\s+/).includes(activeCategory);
+    const queryMatches = !activeQuery || normalizeText(card.dataset.name).includes(normalizeText(activeQuery));
+    const listMatches = !activeList || lists.find((list) => list.id === activeList)?.destinos?.includes(card.dataset.favoriteId);
+    const visible = Boolean(item && categoryMatches && queryMatches && listMatches);
+    card.classList.toggle("hidden", !visible); if (visible) visibleCount++;
+  });
+  let empty = document.getElementById("favorites-empty");
+  if (!empty) { empty = document.createElement("p"); empty.id = "favorites-empty"; empty.className = "hidden rounded-xl bg-white p-8 text-center text-on-surface-variant md:col-span-2"; cardsContainer.append(empty); }
+  empty.textContent = favorites.length ? "No hay destinos que coincidan con estos filtros." : "";
+  empty.classList.toggle("hidden", visibleCount > 0);
+  if (!favorites.length) empty.textContent = "Aún no has guardado destinos favoritos. Usa el corazón en Explorar para añadir uno.";
+}
+function renderFavorites() {
+  cardsContainer.replaceChildren();
+  favorites.forEach((item) => {
+    const displayName = favoriteDisplayName(item);
+    const template = cardTemplates.find((card) => cardIdFromName(card.dataset.name) === item.id);
+    const card = template ? template.cloneNode(true) : makeGenericCard(item);
+    card.dataset.favoriteId = item.id; card.dataset.name = displayName; card.dataset.date = item.guardadoEn || card.dataset.date || "";
+    const heart = card.querySelector(".favorite-heart");
+    if (heart) { setFavoriteButton(heart, true); heart.setAttribute("aria-label", `Quitar ${displayName} de favoritos`); heart.addEventListener("click", () => removeFavorite(item.id)); }
+    const buttons = card.querySelectorAll(".p-space-md.flex.flex-col.flex-1 button");
+    if (buttons[0]) { buttons[0].addEventListener("click", () => { window.location.href = `../index.html?destino=${encodeURIComponent(item.destino || displayName)}`; }); }
+    if (buttons[1]) { buttons[1].addEventListener("click", () => { window.location.href = "../itinerario/index.html"; }); }
+    const actions = card.querySelector(".p-space-md.flex.flex-col.flex-1 > .flex.items-center.gap-space-sm.pt-space-xs");
+    if (actions) { const addList = document.createElement("button"); addList.type = "button"; addList.className = "rounded-lg bg-surface-container px-3 py-2 text-xs font-semibold text-primary"; addList.textContent = "Añadir a lista"; addList.addEventListener("click", () => addFavoriteToList(item.id)); actions.append(addList); }
+    cardsContainer.append(card);
+  });
+  sortCards(sortMode); renderLists(); updateSummary(); applyFilters();
+}
+function removeFavorite(id) { favorites = favorites.filter((item) => String(item.id) !== String(id)); if (writeLocal(KEY_FAVORITES, favorites)) renderFavorites(); }
+function sortCards(mode) {
+  sortMode = mode; const cards = Array.from(cardsContainer.querySelectorAll(".destination-card"));
+  cards.sort((a, b) => mode === "alpha" ? a.dataset.name.localeCompare(b.dataset.name, "es") : mode === "popular" ? Number(b.dataset.popularity) - Number(a.dataset.popularity) : new Date(b.dataset.date) - new Date(a.dataset.date));
+  cards.forEach((card) => cardsContainer.append(card));
+}
+function renderLists() {
+  const container = document.getElementById("custom-lists-container"); if (!container) return; container.replaceChildren();
+  lists.forEach((list) => {
+    const button = document.createElement("button"); button.type = "button"; button.className = "flex w-full items-center justify-between rounded-xl bg-surface-container-low p-3 text-left hover:bg-surface-container";
+    const detail = document.createElement("span"); detail.append(Object.assign(document.createElement("strong"), { className: "block text-primary", textContent: list.nombre }), Object.assign(document.createElement("span"), { className: "text-xs text-on-surface-variant", textContent: `${list.destinos.length} destinos` }));
+    const actions = document.createElement("span"); actions.className = "flex items-center gap-2";
+    const choose = document.createElement("span"); choose.textContent = "Ver"; choose.className = "text-xs font-semibold text-secondary";
+    const remove = document.createElement("span"); remove.textContent = "Eliminar"; remove.className = "text-xs font-semibold text-error";
+    button.append(detail, actions); actions.append(choose, remove);
+    button.addEventListener("click", (event) => { if (event.target === remove) { lists = lists.filter((entry) => entry.id !== list.id); writeLocal(KEY_LISTS, lists); if (activeList === list.id) activeList = null; renderLists(); applyFilters(); } else { activeList = activeList === list.id ? null : list.id; applyFilters(); } });
+    container.append(button);
+  });
+}
+function addFavoriteToList(id) {
+  if (!lists.length) { createList(id); return; }
+  const options = lists.map((list, index) => `${index + 1}. ${list.nombre}`).join("\n"); const answer = prompt(`Escribe el número de la lista:\n${options}`); const index = Number(answer) - 1;
+  if (!Number.isInteger(index) || !lists[index]) return;
+  lists[index].destinos = Array.isArray(lists[index].destinos) ? lists[index].destinos : [];
+  if (!lists[index].destinos.includes(id)) lists[index].destinos.push(id);
+  writeLocal(KEY_LISTS, lists); renderLists(); alert(`Destino añadido a “${lists[index].nombre}”.`);
+}
+function createList(attachId = null) {
+  const nombre = prompt("Nombre de la nueva lista:"); if (!nombre?.trim()) return;
+  lists.push({ id: `list-${Date.now()}`, nombre: nombre.trim(), destinos: attachId ? [attachId] : [] });
+  if (writeLocal(KEY_LISTS, lists)) { renderLists(); if (attachId) alert(`Lista “${nombre.trim()}” creada y destino añadido.`); }
+}
 document.addEventListener("DOMContentLoaded", () => {
-(function() {
-      const filterTabs = document.querySelectorAll('.filter-tab');
-      const cards = document.querySelectorAll('.destination-card');
-      const searchInput = document.getElementById('search-input');
-      const cardsContainer = document.getElementById('cards-container');
-      const sortBtn = document.getElementById('sort-menu-btn');
-      const sortDropdown = document.getElementById('sort-dropdown');
-      const sortOptions = document.querySelectorAll('.sort-option');
-      const currentSortLabel = document.getElementById('current-sort-label');
-      const favoriteHearts = document.querySelectorAll('.favorite-heart');
-
-      let currentCategory = 'all';
-      let searchQuery = '';
-
-      filterTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          filterTabs.forEach(t => {
-            t.classList.remove('bg-secondary', 'text-on-secondary');
-            t.classList.add('bg-surface-container-low', 'text-on-surface-variant');
-          });
-          tab.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
-          tab.classList.add('bg-secondary', 'text-on-secondary');
-
-          currentCategory = tab.getAttribute('data-category');
-          applyFilterAndSearch();
-        });
-      });
-
-      searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.toLowerCase().trim();
-        applyFilterAndSearch();
-      });
-
-      function applyFilterAndSearch() {
-        cards.forEach(card => {
-          const cardCategories = card.getAttribute('data-category') || '';
-          const cardName = card.getAttribute('data-name')?.toLowerCase() || '';
-
-          const matchesCategory = currentCategory === 'all' || cardCategories.includes(currentCategory);
-          const matchesSearch = !searchQuery || cardName.includes(searchQuery);
-
-          if (matchesCategory && matchesSearch) {
-            card.classList.remove('hidden');
-          } else {
-            card.classList.add('hidden');
-          }
-        });
-      }
-
-      sortBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sortDropdown.classList.toggle('hidden');
-      });
-
-      document.addEventListener('click', () => {
-        sortDropdown.classList.add('hidden');
-      });
-
-      sortOptions.forEach(opt => {
-        opt.addEventListener('click', (e) => {
-          const sortType = opt.getAttribute('data-sort');
-          currentSortLabel.textContent = opt.textContent;
-          sortDropdown.classList.add('hidden');
-
-          const cardsArray = Array.from(cards);
-
-          if (sortType === 'recent') {
-            cardsArray.sort((a, b) => new Date(b.getAttribute('data-date')) - new Date(a.getAttribute('data-date')));
-          } else if (sortType === 'popular') {
-            cardsArray.sort((a, b) => Number(b.getAttribute('data-popularity')) - Number(a.getAttribute('data-popularity')));
-          } else if (sortType === 'alpha') {
-            cardsArray.sort((a, b) => a.getAttribute('data-name').localeCompare(b.getAttribute('data-name')));
-          }
-
-          cardsArray.forEach(card => cardsContainer.appendChild(card));
-        });
-      });
-
-      favoriteHearts.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const icon = btn.querySelector('.material-symbols-outlined');
-          if (icon.textContent === 'favorite') {
-            icon.textContent = 'favorite_border';
-            icon.style.fontVariationSettings = "'FILL' 0";
-            btn.classList.remove('text-on-tertiary-container');
-            btn.classList.add('text-on-surface-variant');
-          } else {
-            icon.textContent = 'favorite';
-            icon.style.fontVariationSettings = "'FILL' 1";
-            btn.classList.add('text-on-tertiary-container');
-            btn.classList.remove('text-on-surface-variant');
-          }
-        });
-      });
-
-    })();
+  cardsContainer = document.getElementById("cards-container");
+  cardTemplates = Array.from(cardsContainer.querySelectorAll(".destination-card"));
+  favorites = readLocal(KEY_FAVORITES, []); if (!Array.isArray(favorites)) favorites = [];
+  lists = readLocal(KEY_LISTS, []); if (!Array.isArray(lists)) lists = [];
+  document.querySelectorAll(".filter-tab").forEach((tab) => tab.addEventListener("click", () => {
+    document.querySelectorAll(".filter-tab").forEach((other) => { other.classList.remove("bg-secondary", "text-on-secondary"); other.classList.add("bg-surface-container-low", "text-on-surface-variant"); });
+    tab.classList.add("bg-secondary", "text-on-secondary"); tab.classList.remove("bg-surface-container-low", "text-on-surface-variant"); activeCategory = tab.dataset.category; activeList = null; applyFilters();
+  }));
+  document.getElementById("search-input")?.addEventListener("input", (event) => { activeQuery = event.target.value; applyFilters(); });
+  const sortButton = document.getElementById("sort-menu-btn"); const dropdown = document.getElementById("sort-dropdown");
+  sortButton?.addEventListener("click", (event) => { event.stopPropagation(); dropdown.classList.toggle("hidden"); });
+  document.addEventListener("click", () => dropdown?.classList.add("hidden"));
+  document.querySelectorAll(".sort-option").forEach((option) => option.addEventListener("click", (event) => { event.stopPropagation(); const mode = option.dataset.sort; document.getElementById("current-sort-label").textContent = option.textContent; sortCards(mode); applyFilters(); dropdown.classList.add("hidden"); }));
+  const createListButton = document.getElementById("create-list-btn"); createListButton?.addEventListener("click", createList);
+  renderFavorites();
+  window.addEventListener("storage", (event) => {
+    if (event.key === KEY_FAVORITES) { favorites = readLocal(KEY_FAVORITES, []); renderFavorites(); }
+    if (event.key === KEY_LISTS) { lists = readLocal(KEY_LISTS, []); renderLists(); }
+    if (event.key === "planify:itinerarios") updateSummary();
+  });
+  window.addEventListener("pageshow", () => { favorites = readLocal(KEY_FAVORITES, []); lists = readLocal(KEY_LISTS, []); renderFavorites(); });
 });

@@ -127,16 +127,40 @@ function setFavoriteButton(button, isFavorite) {
   button.classList.toggle("text-on-tertiary-container", isFavorite);
   button.classList.toggle("text-on-surface-variant", !isFavorite);
 }
+function savedPhoto(item) {
+  if (item.imagen) return item.imagen;
+  const photos = readLocal("planify:fotos", {});
+  const city = normalizeText(item.ciudad || "");
+  const country = normalizeText(item.pais || "");
+  return photos[`es:${city}`]?.thumb || photos[`en:${city}`]?.thumb || photos[`es:${country}`]?.thumb || "";
+}
+function savedCurrency(item) {
+  if (item.moneda) return item.moneda;
+  const currencies = {
+    alemania: "EUR", australia: "AUD", brasil: "BRL", canada: "CAD", colombia: "COP",
+    "corea del sur": "KRW", espana: "EUR", "estados unidos": "USD", francia: "EUR",
+    italia: "EUR", japon: "JPY", mexico: "MXN", "paises bajos": "EUR", portugal: "EUR",
+    "reino unido": "GBP", suiza: "CHF"
+  };
+  return currencies[normalizeText(item.pais || "")] || "—";
+}
 function makeGenericCard(item) {
-  const card = document.createElement("article"); card.className = "destination-card overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm";
+  const card = document.createElement("article"); card.className = "destination-card bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group";
   card.dataset.name = favoriteDisplayName(item); card.dataset.category = "ciudades"; card.dataset.popularity = "0"; card.dataset.date = item.guardadoEn || "";
-  const visual = document.createElement("div"); visual.className = "flex h-40 items-end bg-primary-container p-5 text-white";
-  const title = document.createElement("div"); title.append(Object.assign(document.createElement("p"), { className: "text-sm text-secondary-fixed", textContent: item.pais || "Destino guardado" }), Object.assign(document.createElement("h3"), { className: "text-xl font-bold", textContent: item.ciudad || item.destino || "Destino" })); visual.append(title);
-  const actions = document.createElement("div"); actions.className = "flex flex-wrap gap-2 p-4";
-  const heart = document.createElement("button"); heart.type = "button"; heart.className = "favorite-heart rounded-lg bg-surface-container px-3 py-2 text-error"; heart.setAttribute("aria-label", "Quitar de favoritos"); heart.innerHTML = '<span class="material-symbols-outlined">favorite</span>';
-  const view = document.createElement("a"); view.className = "rounded-lg bg-surface-container px-3 py-2 text-sm font-semibold text-primary"; view.textContent = "Ver destino"; view.href = `../index.html?destino=${encodeURIComponent(item.destino || favoriteDisplayName(item))}`;
-  const addList = document.createElement("button"); addList.type = "button"; addList.className = "rounded-lg bg-surface-container px-3 py-2 text-sm font-semibold text-primary"; addList.textContent = "Añadir a lista"; addList.addEventListener("click", () => addFavoriteToList(item.id));
-  actions.append(heart, view, addList); card.append(visual, actions); return card;
+  const visual = document.createElement("div"); visual.className = "relative w-full h-48 overflow-hidden bg-primary-container";
+  const image = document.createElement("img"); image.className = "w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"; image.alt = `Foto de ${favoriteDisplayName(item)}`; image.src = savedPhoto(item) || "../imagenes/Japon.jpg"; visual.append(image);
+  const overlay = document.createElement("div"); overlay.className = "absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none"; visual.append(overlay);
+  const weather = document.createElement("div"); weather.className = "absolute top-space-sm left-space-sm flex items-center gap-space-xs bg-surface-container-lowest/90 backdrop-blur-md px-space-sm py-space-xs rounded-full shadow-sm"; weather.innerHTML = '<span class="material-symbols-outlined text-secondary text-sm">partly_cloudy_day</span><span class="font-label-sm text-label-sm text-primary-container font-semibold">Clima no disponible</span>'; visual.append(weather);
+  const topMeta = document.createElement("div"); topMeta.className = "absolute top-space-sm right-space-sm flex items-center gap-space-xs";
+  const currency = document.createElement("span"); currency.className = "bg-primary-container text-on-primary font-label-sm text-label-sm px-space-sm py-space-xs rounded-full shadow-sm"; currency.textContent = savedCurrency(item); topMeta.append(currency);
+  const heart = document.createElement("button"); heart.type = "button"; heart.className = "favorite-heart w-8 h-8 rounded-full bg-surface-container-lowest/90 text-on-tertiary-container flex items-center justify-center shadow-sm"; heart.setAttribute("aria-label", "Quitar de favoritos"); heart.innerHTML = '<span class="material-symbols-outlined">favorite</span>'; topMeta.append(heart); visual.append(topMeta);
+  const title = document.createElement("div"); title.className = "absolute bottom-space-sm left-space-sm right-space-sm flex items-end justify-between text-on-primary"; const titleText = document.createElement("div"); titleText.append(Object.assign(document.createElement("span"), { className: "font-label-sm text-label-sm uppercase tracking-wider text-secondary-fixed", textContent: item.pais || "Destino guardado" }), Object.assign(document.createElement("h3"), { className: "font-title-lg text-title-lg font-bold", textContent: item.ciudad || item.destino || "Destino" })); const rating = document.createElement("div"); rating.className = "flex items-center gap-space-xs bg-black/40 backdrop-blur-sm px-space-sm py-0.5 rounded-md"; rating.innerHTML = '<span class="material-symbols-outlined text-tertiary-fixed-dim text-sm material-symbols-filled">star</span><span class="font-label-sm text-label-sm font-bold">—</span>'; title.append(titleText, rating); visual.append(title);
+  const content = document.createElement("div"); content.className = "p-space-md flex flex-col flex-1 justify-between gap-space-sm";
+  const tags = document.createElement("div"); tags.className = "flex flex-wrap gap-space-xs"; tags.append(Object.assign(document.createElement("span"), { className: "bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full", textContent: "Destino guardado" }));
+  const actions = document.createElement("div"); actions.className = "flex items-center gap-space-sm pt-space-xs";
+  const view = document.createElement("button"); view.type = "button"; view.className = "flex-1 py-1.5 px-space-sm rounded-lg bg-surface-container-low text-primary-container font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1"; view.innerHTML = '<span>Ver Ficha</span><span class="material-symbols-outlined text-sm">arrow_forward</span>';
+  const itinerary = document.createElement("button"); itinerary.type = "button"; itinerary.className = "flex-1 py-1.5 px-space-sm rounded-lg bg-secondary text-on-secondary font-label-md text-label-md font-semibold shadow-sm transition-colors flex items-center justify-center gap-1"; itinerary.innerHTML = '<span class="material-symbols-outlined text-sm">calendar_month</span><span>Itinerario</span>';
+  actions.append(view, itinerary); content.append(tags, actions); card.append(visual, content); return card;
 }
 function updateSummary() {
   const allTab = document.querySelector('[data-category="all"]'); if (allTab) allTab.textContent = `Todos (${favorites.length})`;
@@ -177,7 +201,7 @@ function renderFavorites() {
     if (buttons[0]) { buttons[0].addEventListener("click", () => { window.location.href = `../index.html?destino=${encodeURIComponent(item.destino || displayName)}`; }); }
     if (buttons[1]) { buttons[1].addEventListener("click", () => { window.location.href = "../itinerario/index.html"; }); }
     const actions = card.querySelector(".p-space-md.flex.flex-col.flex-1 > .flex.items-center.gap-space-sm.pt-space-xs");
-    if (actions) { const addList = document.createElement("button"); addList.type = "button"; addList.className = "rounded-lg bg-surface-container px-3 py-2 text-xs font-semibold text-primary"; addList.textContent = "Añadir a lista"; addList.addEventListener("click", () => addFavoriteToList(item.id)); actions.append(addList); }
+    if (actions) { const addList = document.createElement("button"); addList.type = "button"; addList.className = "flex-1 py-1.5 px-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary-container font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1"; addList.innerHTML = '<span class="material-symbols-outlined text-sm">add_circle</span><span>Añadir a lista</span>'; addList.addEventListener("click", () => addFavoriteToList(item.id)); actions.append(addList); }
     cardsContainer.append(card);
   });
   sortCards(sortMode); renderLists(); updateSummary(); applyFilters();

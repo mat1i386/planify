@@ -677,10 +677,19 @@ function toggleFavorite() {
   const id = idDestino(destino);
   const favoritos = obtenerFavoritos();
   const yaExiste = favoritos.some((favorito) => favorito.id === id);
+  const currencyText = document.getElementById("destination-currency")?.textContent || "";
+  const moneda = currencyText.match(/\b[A-Z]{3}\b/)?.[0] || "";
 
   const actualizados = yaExiste
     ? favoritos.filter((favorito) => favorito.id !== id) // eliminar
-    : [...favoritos, { id, destino, ...separarDestino(destino), guardadoEn: new Date().toISOString() }]; // agregar sin duplicar
+    : [...favoritos, {
+      id,
+      destino,
+      ...separarDestino(destino),
+      imagen: document.getElementById("destination-photo")?.currentSrc || document.getElementById("destination-photo")?.src || "",
+      moneda,
+      guardadoEn: new Date().toISOString()
+    }]; // agregar sin duplicar
 
   guardarStorage(CLAVE_FAVORITOS, actualizados);
   actualizarBotonFavorito();

@@ -110,7 +110,6 @@ const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[
 function readLocal(key, fallback) { try { return JSON.parse(localStorage.getItem(key) || "null") ?? fallback; } catch (error) { console.error(error); return fallback; } }
 function writeLocal(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (error) { alert("No se pudieron guardar los cambios en este navegador."); return false; } }
 function cardIdFromName(name) { const [city, ...country] = String(name || "").split(",").map((part) => part.trim()); return `${normalizeText(country.join(","))}|${normalizeText(city)}`; }
-let activeCategory = "all";
 let activeQuery = "";
 let activeList = null;
 let sortMode = "recent";
@@ -119,6 +118,7 @@ let lists = [];
 let cardsContainer;
 let cardTemplates = [];
 function favoriteDisplayName(item) { return item.ciudad && item.pais ? `${item.ciudad}, ${item.pais}` : item.destino || item.id; }
+function cityFavorites() { return favorites.filter((item) => String(item.ciudad || "").trim()); }
 function setFavoriteButton(button, isFavorite) {
   const icon = button.querySelector(".material-symbols-outlined");
   if (!icon) return;
@@ -163,34 +163,33 @@ function makeGenericCard(item) {
   actions.append(view, itinerary); content.append(tags, actions); card.append(visual, content); return card;
 }
 function updateSummary() {
-  const allTab = document.querySelector('[data-category="all"]'); if (allTab) allTab.textContent = `Todos (${favorites.length})`;
-  const countries = new Set(favorites.map((item) => normalizeText(item.pais)).filter(Boolean));
-  document.getElementById("favorite-total").textContent = String(favorites.length);
+  const cities = cityFavorites();
+  const countries = new Set(cities.map((item) => normalizeText(item.pais)).filter(Boolean));
+  document.getElementById("favorite-total").textContent = String(cities.length);
   document.getElementById("country-total").textContent = String(countries.size);
   document.getElementById("route-total").textContent = String(readLocal("planify:itinerarios", []).length);
   document.getElementById("list-count").textContent = `${lists.length} ${lists.length === 1 ? "activa" : "activas"}`;
-  const japanSaved = favorites.some((item) => item.id === "japon|tokio" || item.id === "japon|kioto");
+  const japanSaved = cities.some((item) => item.id === "japon|tokio" || item.id === "japon|kioto");
   document.getElementById("seasonal-suggestion").classList.toggle("hidden", !japanSaved);
 }
 function applyFilters() {
   let visibleCount = 0;
   cardsContainer.querySelectorAll(".destination-card").forEach((card) => {
     const item = favorites.find((favorite) => String(favorite.id) === card.dataset.favoriteId);
-    const categoryMatches = activeCategory === "all" || (card.dataset.category || "").split(/\s+/).includes(activeCategory);
     const queryMatches = !activeQuery || normalizeText(card.dataset.name).includes(normalizeText(activeQuery));
     const listMatches = !activeList || lists.find((list) => list.id === activeList)?.destinos?.includes(card.dataset.favoriteId);
-    const visible = Boolean(item && categoryMatches && queryMatches && listMatches);
+    const visible = Boolean(item && String(item.ciudad || "").trim() && queryMatches && listMatches);
     card.classList.toggle("hidden", !visible); if (visible) visibleCount++;
   });
   let empty = document.getElementById("favorites-empty");
   if (!empty) { empty = document.createElement("p"); empty.id = "favorites-empty"; empty.className = "hidden rounded-xl bg-white p-8 text-center text-on-surface-variant md:col-span-2"; cardsContainer.append(empty); }
-  empty.textContent = favorites.length ? "No hay destinos que coincidan con estos filtros." : "";
+  empty.textContent = cityFavorites().length ? "No hay ciudades favoritas que coincidan con la búsqueda." : "";
   empty.classList.toggle("hidden", visibleCount > 0);
-  if (!favorites.length) empty.textContent = "Aún no has guardado destinos favoritos. Usa el corazón en Explorar para añadir uno.";
+  if (!cityFavorites().length) empty.textContent = "Aún no has guardado ciudades favoritas. Usa el corazón en Explorar para añadir una.";
 }
 function renderFavorites() {
   cardsContainer.replaceChildren();
-  favorites.forEach((item) => {
+  cityFavorites().forEach((item) => {
     const displayName = favoriteDisplayName(item);
     const template = cardTemplates.find((card) => cardIdFromName(card.dataset.name) === item.id);
     const card = template ? template.cloneNode(true) : makeGenericCard(item);
@@ -198,8 +197,8 @@ function renderFavorites() {
     const heart = card.querySelector(".favorite-heart");
     if (heart) { setFavoriteButton(heart, true); heart.setAttribute("aria-label", `Quitar ${displayName} de favoritos`); heart.addEventListener("click", () => removeFavorite(item.id)); }
     const buttons = card.querySelectorAll(".p-space-md.flex.flex-col.flex-1 button");
-    if (buttons[0]) { buttons[0].addEventListener("click", () => { window.location.href = `../index.html?destino=${encodeURIComponent(item.destino || displayName)}`; }); }
-    if (buttons[1]) { buttons[1].addEventListener("click", () => { window.location.href = "../itinerario/index.html"; }); }
+    if (buttons[0]) { buttons[0].addEventListener("click", () => { window.location.href = `../index.html?destino=${encodeURIComponent(item.destino || displayName)}#destination-details`; }); }
+    if (buttons[1]) { buttons[1].addEventListener("click", () => { window.location.href = `../itinerario/index.html?nuevo=1&destino=${encodeURIComponent(item.destino || displayName)}`; }); }
     const actions = card.querySelector(".p-space-md.flex.flex-col.flex-1 > .flex.items-center.gap-space-sm.pt-space-xs");
     if (actions) { const addList = document.createElement("button"); addList.type = "button"; addList.className = "flex-1 py-1.5 px-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary-container font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-1"; addList.innerHTML = '<span class="material-symbols-outlined text-sm">add_circle</span><span>Añadir a lista</span>'; addList.addEventListener("click", () => addFavoriteToList(item.id)); actions.append(addList); }
     cardsContainer.append(card);
@@ -243,10 +242,6 @@ document.addEventListener("DOMContentLoaded", () => {
   cardTemplates = Array.from(cardsContainer.querySelectorAll(".destination-card"));
   favorites = readLocal(KEY_FAVORITES, []); if (!Array.isArray(favorites)) favorites = [];
   lists = readLocal(KEY_LISTS, []); if (!Array.isArray(lists)) lists = [];
-  document.querySelectorAll(".filter-tab").forEach((tab) => tab.addEventListener("click", () => {
-    document.querySelectorAll(".filter-tab").forEach((other) => { other.classList.remove("bg-secondary", "text-on-secondary"); other.classList.add("bg-surface-container-low", "text-on-surface-variant"); });
-    tab.classList.add("bg-secondary", "text-on-secondary"); tab.classList.remove("bg-surface-container-low", "text-on-surface-variant"); activeCategory = tab.dataset.category; activeList = null; applyFilters();
-  }));
   document.getElementById("search-input")?.addEventListener("input", (event) => { activeQuery = event.target.value; applyFilters(); });
   const sortButton = document.getElementById("sort-menu-btn"); const dropdown = document.getElementById("sort-dropdown");
   sortButton?.addEventListener("click", (event) => { event.stopPropagation(); dropdown.classList.toggle("hidden"); });

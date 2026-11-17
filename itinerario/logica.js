@@ -300,10 +300,18 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".trip-tab").forEach((tab) => tab.addEventListener("click", () => renderView(tab.dataset.view)));
   document.getElementById("delete-trip-btn").addEventListener("click", deleteSelectedTrip);
   document.getElementById("edit-trip-btn").addEventListener("click", () => openTripModal(selectedTrip));
+  document.getElementById("quick-add-activity-btn").addEventListener("click", () => openItemModal("activity"));
+  document.getElementById("local-data-info")?.addEventListener("click", (event) => { event.preventDefault(); notify("Los itinerarios se guardan en este navegador; no hace falta iniciar sesión."); });
   document.getElementById("export-ics-btn").addEventListener("click", exportCalendar);
   document.getElementById("print-trip-btn").addEventListener("click", () => window.print());
   document.getElementById("share-trip-btn").addEventListener("click", shareTrip);
   loadApp();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("nuevo") === "1") {
+    openTripModal();
+    const destination = params.get("destino");
+    if (destination) document.querySelector('#trip-form [name="destino"]').value = destination;
+  }
   window.addEventListener("storage", (event) => {
     if ([KEY_TRIPS, KEY_ACTIVITIES].includes(event.key)) loadApp();
   });

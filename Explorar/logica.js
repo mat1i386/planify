@@ -521,6 +521,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("search-input");
   const linkedDestination = new URLSearchParams(window.location.search).get("destino");
   if (linkedDestination && searchInput) searchInput.value = linkedDestination;
+  if (linkedDestination) requestAnimationFrame(() => document.getElementById("destination-details")?.scrollIntoView({ behavior: "smooth", block: "start" }));
   if (searchInput?.value) buscarDestino(searchInput.value);
 });
 
@@ -648,6 +649,16 @@ function destinoActual() {
   return document.getElementById("current-destination-title")?.textContent.trim() || "";
 }
 
+function infoDestinoFavoritoActual() {
+  const destino = destinoActual();
+  const partes = separarDestino(destino);
+  const paisEnFicha = document.getElementById("destination-name")?.textContent.trim() || "";
+  if (!partes.ciudad && paisEnFicha && paisEnFicha !== "—" && normalizar(partes.pais) !== normalizar(paisEnFicha)) {
+    return { destino: `${destino}, ${paisEnFicha}`, pais: paisEnFicha, ciudad: destino, id: `${normalizar(paisEnFicha)}|${normalizar(destino)}` };
+  }
+  return { destino, ...partes, id: idDestino(destino) };
+}
+
 /* ===================== Favoritos ===================== */
 function idDestino(destination) {
   const { pais, ciudad } = separarDestino(destination);
@@ -663,7 +674,7 @@ function actualizarBotonFavorito() {
   const favIcon = document.getElementById("fav-icon");
   if (!favText || !favIcon) return;
 
-  const id = idDestino(destinoActual());
+  const id = infoDestinoFavoritoActual().id;
   const esFavorito = obtenerFavoritos().some((favorito) => favorito.id === id);
 
   favText.textContent = esFavorito ? "En Favoritos" : "Añadir a Favoritos";
@@ -671,10 +682,9 @@ function actualizarBotonFavorito() {
 }
 
 function toggleFavorite() {
-  const destino = destinoActual();
-  if (!destino) return;
-
-  const id = idDestino(destino);
+  const info = infoDestinoFavoritoActual();
+  if (!info.destino) return;
+  const id = info.id;
   const favoritos = obtenerFavoritos();
   const yaExiste = favoritos.some((favorito) => favorito.id === id);
   const currencyText = document.getElementById("destination-currency")?.textContent || "";
@@ -684,8 +694,7 @@ function toggleFavorite() {
     ? favoritos.filter((favorito) => favorito.id !== id) // eliminar
     : [...favoritos, {
       id,
-      destino,
-      ...separarDestino(destino),
+      ...info,
       imagen: document.getElementById("destination-photo")?.currentSrc || document.getElementById("destination-photo")?.src || "",
       moneda,
       guardadoEn: new Date().toISOString()

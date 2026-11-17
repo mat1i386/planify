@@ -13,14 +13,15 @@
 </head>
 <body class="bg-background font-body-md text-on-surface antialiased">
 <header class="fixed top-0 z-50 w-full bg-primary-container shadow-sm print:hidden">
-  <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-8">
-    <a class="flex items-center gap-2" href="../index.html"><img class="h-8 w-auto" src="../imagenes/planify-logo.png" alt="Planify"><span class="font-title-lg text-on-primary font-bold">Planify</span></a>
-    <nav class="hidden items-center gap-6 md:flex" aria-label="Navegación principal">
-      <a class="text-inverse-on-surface hover:text-secondary-fixed" href="../index.html">Explorar</a>
-      <a class="text-inverse-on-surface hover:text-secondary-fixed" href="../favoritos/index.html">Favoritos</a>
-      <a aria-current="page" class="border-b-2 border-secondary-fixed py-2 font-bold text-secondary-fixed" href="index.html">Mi Itinerario</a>
-      <a class="text-inverse-on-surface hover:text-secondary-fixed" href="../Acerca%20de/index.html">Acerca de</a>
+  <div class="h-16 w-full px-margin flex items-center justify-between">
+    <a class="flex items-center gap-space-sm" href="../index.html"><img class="h-8 w-auto object-contain" src="../imagenes/planify-logo.png" alt="Planify Logo"><span class="font-title-lg text-title-lg text-on-primary font-bold tracking-tight">Planify</span></a>
+    <nav class="hidden items-center gap-space-lg md:flex" aria-label="Navegación principal">
+      <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" href="../index.html">Explorar</a>
+      <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" href="../favoritos/index.html">Favoritos</a>
+      <a aria-current="page" class="font-label-lg text-label-lg text-secondary-fixed font-bold border-b-2 border-secondary-fixed transition-colors py-space-xs" href="index.html">Mi Itinerario</a>
+      <a class="font-label-lg text-label-lg text-inverse-on-surface hover:text-secondary-fixed transition-colors py-space-xs" href="../Acerca%20de/index.html">Acerca de</a>
     </nav>
+    <div class="flex items-center gap-space-md"><a class="hidden sm:inline-flex items-center justify-center px-space-md py-space-xs rounded-lg border border-secondary text-secondary-fixed font-label-lg text-label-lg hover:bg-secondary/10 transition-colors" href="#" id="local-data-info">Ingresar</a></div>
   </div>
 </header>
 <main class="min-h-screen px-4 pb-12 pt-24 md:px-8">
@@ -35,7 +36,7 @@
 
     <section class="hidden space-y-6" id="trip-dashboard">
       <div class="grid gap-4 rounded-xl bg-white p-5 shadow-sm lg:grid-cols-[1.5fr_1fr_1fr]">
-        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-secondary-fixed px-3 py-1 text-xs font-bold text-secondary">BORRADOR</span><button class="ml-auto text-sm font-semibold text-primary hover:underline" id="edit-trip-btn" type="button">Editar</button><button class="text-sm font-semibold text-error hover:underline" id="delete-trip-btn" type="button">Eliminar plan</button></div><h2 class="mt-3 break-words text-2xl font-bold text-primary" id="trip-name"></h2><p class="mt-1 text-on-surface-variant" id="trip-destination"></p><p class="mt-1 text-sm text-on-surface-variant" id="trip-dates"></p><p class="mt-3 break-words text-sm text-on-surface-variant" id="trip-notes"></p></div>
+        <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-secondary-fixed px-3 py-1 text-xs font-bold text-secondary">BORRADOR</span><button class="rounded-lg bg-secondary px-3 py-2 text-sm font-semibold text-white hover:bg-on-secondary-container" id="quick-add-activity-btn" type="button">Añadir actividad</button><button class="ml-auto text-sm font-semibold text-primary hover:underline" id="edit-trip-btn" type="button">Editar</button><button class="text-sm font-semibold text-error hover:underline" id="delete-trip-btn" type="button">Eliminar plan</button></div><h2 class="mt-3 break-words text-2xl font-bold text-primary" id="trip-name"></h2><p class="mt-1 text-on-surface-variant" id="trip-destination"></p><p class="mt-1 text-sm text-on-surface-variant" id="trip-dates"></p><p class="mt-3 break-words text-sm text-on-surface-variant" id="trip-notes"></p></div>
         <div class="rounded-lg bg-surface-container-low p-4"><p class="text-xs font-bold uppercase text-outline">Presupuesto</p><p class="mt-2 text-xl font-bold text-primary" id="trip-budget"></p><div class="mt-3 h-2 overflow-hidden rounded-full bg-surface-container-high"><div class="h-full rounded-full bg-secondary" id="budget-progress"></div></div><p class="mt-2 text-sm text-on-surface-variant" id="budget-summary"></p></div>
         <div class="rounded-lg bg-surface-container-low p-4"><p class="text-xs font-bold uppercase text-outline">Resumen</p><p class="mt-2 text-xl font-bold text-primary" id="activity-summary"></p><p class="mt-2 text-sm text-on-surface-variant" id="reservation-summary"></p></div>
       </div>

@@ -1,109 +1,3 @@
-﻿tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        "colors": {
-          "inverse-on-surface": "#f2f0f0",
-          "secondary-fixed-dim": "#6dd8c8",
-          "on-tertiary-fixed-variant": "#723600",
-          "surface-container-highest": "#e4e2e2",
-          "surface-dim": "#dbd9d9",
-          "on-tertiary-container": "#ff8c31",
-          "on-surface": "#1b1c1c",
-          "outline-variant": "#c3c6cf",
-          "on-tertiary-fixed": "#311300",
-          "surface-container-low": "#f5f3f3",
-          "secondary": "#006a60",
-          "on-error": "#ffffff",
-          "tertiary-fixed-dim": "#ffb786",
-          "secondary-fixed": "#8bf5e4",
-          "inverse-surface": "#303030",
-          "on-primary-container": "#8cacd9",
-          "on-secondary-fixed-variant": "#005048",
-          "surface-container-lowest": "#ffffff",
-          "surface-container": "#efeded",
-          "on-secondary-fixed": "#00201c",
-          "tertiary-fixed": "#ffdcc7",
-          "inverse-primary": "#a8c9f7",
-          "tertiary": "#451e00",
-          "surface-variant": "#e4e2e2",
-          "error": "#ba1a1a",
-          "outline": "#73777f",
-          "on-primary-fixed-variant": "#264870",
-          "on-secondary": "#ffffff",
-          "error-container": "#ffdad6",
-          "on-error-container": "#93000a",
-          "primary": "#002a4f",
-          "surface": "#fbf9f8",
-          "on-surface-variant": "#43474e",
-          "primary-fixed-dim": "#a8c9f7",
-          "on-background": "#1b1c1c",
-          "on-tertiary": "#ffffff",
-          "tertiary-container": "#663000",
-          "surface-container-high": "#eae8e7",
-          "secondary-container": "#88f2e2",
-          "surface-bright": "#fbf9f8",
-          "primary-container": "#1d4067",
-          "primary-fixed": "#d3e4ff",
-          "on-primary": "#ffffff",
-          "on-primary-fixed": "#001c38",
-          "on-secondary-container": "#006f64",
-          "surface-tint": "#406089",
-          "background": "#fbf9f8"
-        },
-        "borderRadius": {
-          "DEFAULT": "0.25rem",
-          "lg": "0.5rem",
-          "xl": "0.75rem",
-          "full": "9999px"
-        },
-        "spacing": {
-          "space-lg": "1.5rem",
-          "space-sm": "0.5rem",
-          "gutter-sm": "1rem",
-          "space-xl": "2.5rem",
-          "margin": "2rem",
-          "margin-sm": "1rem",
-          "space-md": "1rem",
-          "space-xs": "0.25rem",
-          "gutter": "1.5rem"
-        },
-        "fontFamily": {
-          "body-lg": ["Roboto Flex"],
-          "label-lg": ["Roboto Flex"],
-          "display-lg": ["Roboto Flex"],
-          "headline-lg-mobile": ["Roboto Flex"],
-          "display-lg-mobile": ["Roboto Flex"],
-          "title-lg": ["Roboto Flex"],
-          "headline-sm": ["Roboto Flex"],
-          "label-md": ["Roboto Flex"],
-          "title-md": ["Roboto Flex"],
-          "label-sm": ["Roboto Flex"],
-          "body-md": ["Roboto Flex"],
-          "body-sm": ["Roboto Flex"],
-          "headline-lg": ["Roboto Flex"],
-          "headline-md": ["Roboto Flex"]
-        },
-        "fontSize": {
-          "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
-          "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600"}],
-          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-          "headline-lg-mobile": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.005em", "fontWeight": "700"}],
-          "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-          "title-lg": ["18px", {"lineHeight": "26px", "letterSpacing": "0em", "fontWeight": "600"}],
-          "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600"}],
-          "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
-          "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.005em", "fontWeight": "500"}],
-          "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "700"}],
-          "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400"}],
-          "body-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.015em", "fontWeight": "400"}],
-          "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
-          "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "0em", "fontWeight": "600"}]
-        }
-      }
-    }
-  };
-
 function quickFilter(destination) {
       const input = document.getElementById('search-input');
       const title = document.getElementById('current-destination-title');
@@ -163,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const data = new FormData(activityForm);
     const activities = obtenerActividades();
     const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
-    const itineraryId = localStorage.getItem("planify:itinerario-seleccionado");
+    const itineraryId = localStorage.getItem(CLAVE_ITINERARIO_SELECCIONADO);
     const itinerarioActual = itinerarios.find((trip) => String(trip.id) === itineraryId) || itinerarios[itinerarios.length - 1];
     const actividad = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
@@ -189,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   pintarActividades();
   const itinerariosGuardados = leerStorage(CLAVE_ITINERARIOS, []);
-  const selectedTripId = localStorage.getItem("planify:itinerario-seleccionado");
+  const selectedTripId = localStorage.getItem(CLAVE_ITINERARIO_SELECCIONADO);
   const activeTrip = itinerariosGuardados.find((trip) => String(trip.id) === selectedTripId) || itinerariosGuardados[itinerariosGuardados.length - 1];
   if (activeTrip) pintarResumenItinerario(activeTrip);
 
@@ -277,7 +171,7 @@ function actualizarFichaGeopolitica(country) {
 }
 
 /* ===================== Monedas (Currencies API de REST Countries) ===================== */
-const CLAVE_TASAS = "planify:tasasUSD-restcountries";
+const CLAVE_TASAS = "tasas-usd-restcountries";
 
 // Una sola consulta trae la tabla de TODAS las monedas contra USD; se guarda 12 horas
 // (en el plan gratis las tasas se actualizan cada 24 h, así que no se pierde frescura).
@@ -421,7 +315,7 @@ async function pedirPaises(ruta, texto) {
 }
 
 /* ===================== País, ciudad o moneda: buscarDestino ===================== */
-const CLAVE_PAISES = "planify:paises";
+const CLAVE_PAISES = "paises";
 
 // Solo acepta coincidencia EXACTA de nombre (así "Roma" no devuelve Rumanía)
 function coincidePais(pais, buscado) {
@@ -526,10 +420,25 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ===================== localStorage ===================== */
-const CLAVE_FAVORITOS = "planify:favoritos";
-const CLAVE_ITINERARIOS = "planify:itinerarios";
-const CLAVE_ACTIVIDADES = "planify:actividades-cronograma";
-const CLAVE_COORDENADAS = "planify:coordenadas";
+const CLAVE_FAVORITOS = "favoritos";
+const CLAVE_ITINERARIOS = "itinerarios";
+const CLAVE_ACTIVIDADES = "actividades-cronograma";
+const CLAVE_COORDENADAS = "coordenadas";
+const CLAVE_ITINERARIO_SELECCIONADO = "itinerario-seleccionado";
+
+function migrarClaveAnterior(claveNueva, claveAnterior) {
+  const valorActual = localStorage.getItem(claveNueva);
+  const valorAnterior = localStorage.getItem(claveAnterior);
+  if (valorActual === null && valorAnterior !== null) localStorage.setItem(claveNueva, valorAnterior);
+  if (valorAnterior !== null) localStorage.removeItem(claveAnterior);
+}
+migrarClaveAnterior(CLAVE_FAVORITOS, "planify:favoritos");
+migrarClaveAnterior(CLAVE_ITINERARIOS, "planify:itinerarios");
+migrarClaveAnterior(CLAVE_ACTIVIDADES, "planify:actividades-cronograma");
+migrarClaveAnterior(CLAVE_COORDENADAS, "planify:coordenadas");
+migrarClaveAnterior(CLAVE_ITINERARIO_SELECCIONADO, "planify:itinerario-seleccionado");
+migrarClaveAnterior(CLAVE_TASAS, "planify:tasasUSD-restcountries");
+migrarClaveAnterior(CLAVE_PAISES, "planify:paises");
 
 function obtenerActividades() {
   const activities = leerStorage(CLAVE_ACTIVIDADES, []);
@@ -540,7 +449,7 @@ function pintarActividades() {
   const list = document.getElementById("schedule-list");
   if (!list) return;
   const itinerarios = leerStorage(CLAVE_ITINERARIOS, []);
-  const selectedId = localStorage.getItem("planify:itinerario-seleccionado");
+  const selectedId = localStorage.getItem(CLAVE_ITINERARIO_SELECCIONADO);
   const activeTrip = itinerarios.find((trip) => String(trip.id) === selectedId) || itinerarios[itinerarios.length - 1];
   const itineraryId = activeTrip?.id;
   const activities = obtenerActividades()
@@ -763,7 +672,7 @@ function guardarItinerario() {
     creadoEn: new Date().toISOString()
   };
   itinerarios.push(itinerario);
-  localStorage.setItem("planify:itinerario-seleccionado", String(itinerario.id));
+  localStorage.setItem(CLAVE_ITINERARIO_SELECCIONADO, String(itinerario.id));
   return guardarStorage(CLAVE_ITINERARIOS, itinerarios) ? itinerario : false;
 }
 
@@ -828,7 +737,9 @@ function ponerTexto(id, texto) {
   if (element) element.textContent = texto;
 }
 
-const CLAVE_LUGARES = "planify:lugares";
+const CLAVE_LUGARES = "lugares";
+
+migrarClaveAnterior(CLAVE_LUGARES, "planify:lugares");
 const lugaresEnVuelo = {};
 
 // Nominatim: coordenadas + país (en inglés) de una ciudad o país. Se guarda en localStorage.
@@ -965,7 +876,8 @@ async function cargarClima(destination) {
 }
 
 /* ===================== Foto, bandera y códigos del destino ===================== */
-const CLAVE_FOTOS = "planify:fotos";
+const CLAVE_FOTOS = "fotos";
+migrarClaveAnterior(CLAVE_FOTOS, "planify:fotos");
 let ultimaSolicitudFoto = 0;
 
 function actualizarBanderaYCodigos(country) {
